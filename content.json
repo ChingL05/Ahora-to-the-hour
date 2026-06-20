@@ -1,13 +1,37 @@
 {
   "album": [
-    { "image": "photos/web/cloud.jpg", "alt": "A small dark cloud in a soft pastel dusk sky" },
-    { "image": "photos/web/Trasaghis.jpg", "alt": "Light breaking through cloud over a still mountain lake" },
-    { "image": "photos/web/building.jpg", "alt": "Looking up at a brick tower against deep blue sky" },
-    { "image": "photos/web/roadsign.jpg", "alt": "A quiet street corner in low evening light" },
-    { "image": "photos/web/littleheart.jpg", "alt": "A cup of coffee seen from above, a small mark in the foam" },
-    { "image": "photos/web/43.jpg", "alt": "A modern building at blue hour beneath a wide sky" },
-    { "image": "photos/web/newbanner.jpg", "alt": "A harbour skyline at night, lights on dark water" },
-    { "image": "photos/web/onlearning.jpg", "alt": "An abstract blue painting, like water from memory" }
+    {
+      "image": "photos/web/cloud.jpg",
+      "alt": "Rarw! (remember to look up to the sky and your surrounding sometimes.)"
+    },
+    {
+      "image": "photos/web/Trasaghis.jpg",
+      "alt": "Stillness and reflection."
+    },
+    {
+      "image": "photos/web/building.jpg",
+      "alt": "Symmetric."
+    },
+    {
+      "image": "photos/web/roadsign.jpg",
+      "alt": "Not so straight 🏳️‍🌈."
+    },
+    {
+      "image": "photos/web/littleheart.jpg",
+      "alt": "The little heartful moment."
+    },
+    {
+      "image": "photos/web/43.jpg",
+      "alt": "Golden light."
+    },
+    {
+      "image": "photos/web/newbanner.jpg",
+      "alt": "Home: Hong Kong."
+    },
+    {
+      "image": "photos/web/onlearning.jpg",
+      "alt": "Depth, Layers, Blues."
+    }
   ],
   "notes": [
     {
