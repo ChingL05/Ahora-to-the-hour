@@ -1,0 +1,39 @@
+# Decap CMS configuration for Ahora
+# Edits content.json and uploads photos — then commits + republishes automatically.
+
+backend:
+  name: git-gateway      # works with Netlify Identity (see README for setup)
+  branch: main           # the branch your live site is built from
+
+# Where uploaded photos are stored, and how they're referenced in content.json.
+media_folder: "photos/web"
+public_folder: "photos/web"
+
+collections:
+  - name: "site"
+    label: "Ahora"
+    files:
+      - name: "content"
+        label: "Album & Pages"
+        file: "content.json"
+        description: "Add or reorder photos in the album, and write the notes."
+        fields:
+          - label: "Album (photos)"
+            name: "album"
+            widget: "list"
+            label_singular: "Photo"
+            summary: "{{fields.alt}}"
+            fields:
+              - { label: "Photo", name: "image", widget: "image" }
+              - { label: "Description (for accessibility)", name: "alt", widget: "string", required: false }
+
+          - label: "Pages (notes)"
+            name: "notes"
+            widget: "list"
+            label_singular: "Note"
+            summary: "{{fields.title}}"
+            fields:
+              - { label: "Small label", name: "label", widget: "string", hint: "e.g. Note 04" }
+              - { label: "Title", name: "title", widget: "string" }
+              - { label: "Body", name: "body", widget: "text", hint: "Leave a blank line between paragraphs." }
+              - { label: "Closing aside (optional, italic)", name: "aside", widget: "string", required: false }

@@ -1,0 +1,32 @@
+{
+  "album": [
+    { "image": "photos/web/cloud.jpg", "alt": "A small dark cloud in a soft pastel dusk sky" },
+    { "image": "photos/web/Trasaghis.jpg", "alt": "Light breaking through cloud over a still mountain lake" },
+    { "image": "photos/web/building.jpg", "alt": "Looking up at a brick tower against deep blue sky" },
+    { "image": "photos/web/roadsign.jpg", "alt": "A quiet street corner in low evening light" },
+    { "image": "photos/web/littleheart.jpg", "alt": "A cup of coffee seen from above, a small mark in the foam" },
+    { "image": "photos/web/43.jpg", "alt": "A modern building at blue hour beneath a wide sky" },
+    { "image": "photos/web/newbanner.jpg", "alt": "A harbour skyline at night, lights on dark water" },
+    { "image": "photos/web/onlearning.jpg", "alt": "An abstract blue painting, like water from memory" }
+  ],
+  "notes": [
+    {
+      "label": "Note 01",
+      "title": "On the particular light of late afternoon",
+      "body": "There is a light, around four o'clock in the colder months, that makes ordinary streets feel borrowed from memory. It doesn't ask for anything. It arrives, lays itself across a wall, and leaves again before you've decided what to do with it.",
+      "aside": "I have learned to stop for it — to let the errand wait."
+    },
+    {
+      "label": "Note 02",
+      "title": "What the table remembers",
+      "body": "A cup, a folded napkin, the last of the morning's bread. Small still lifes assemble themselves without my asking. For a while I tried to tidy them away. Now I leave them, because they are honest about how a day is actually lived.\n\nNone of it is composed. That is the part I am most fond of.",
+      "aside": ""
+    },
+    {
+      "label": "Note 03",
+      "title": "A practice of looking twice",
+      "body": "Most things will give you a second meaning if you let them sit. The cracked step. The neighbour's washing line. The way steam leaves a window. I keep these pages as a way of looking twice — once with the eye, once on purpose.\n\nYou are welcome to look alongside me.",
+      "aside": ""
+    }
+  ]
+}

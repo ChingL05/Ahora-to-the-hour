@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ahora — to the hour</title>
+  <meta name="description" content="Ahora: to the hour — inviting you to pause and reflect. A few photographs to leaf through, and a few pages to read." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script defer src="main.js"></script>
+</head>
+<body>
+
+  <header class="masthead">
+    <a class="wordmark" href="#cover">Ahora<span class="dot">.</span></a>
+    <nav class="top">
+      <a href="#album">Album</a>
+      <a href="#reader">Pages</a>
+      <a href="#invite">Say hello</a>
+    </nav>
+  </header>
+
+  <!-- TITLE PAGE -->
+  <section class="screen cover" id="cover">
+    <span class="label">A quiet place to notice</span>
+    <h1 class="lines"><span class="line"><span>Ahora</span></span></h1>
+    <div class="stagger cover-body">
+      <p class="standfirst">The quiet, it turns out, was never empty — a few photographs to leaf through, and a few pages to read after. Nothing here to buy, nothing to finish. Stay as long as the light holds.</p>
+      <span class="begin">Begin with the album</span>
+    </div>
+  </section>
+
+  <!-- THE ALBUM -->
+  <section class="screen album" id="album">
+    <div class="album-head"><span class="label">The Album — leaf sideways</span></div>
+    <div class="track" id="track"><!-- photos injected from content.json by main.js --></div>
+    <div class="album-foot">
+      <div class="album-meta">
+        <span class="count" id="count">01 / 01</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE PAGES -->
+  <section class="screen reader" id="reader">
+    <span class="label">The Pages — scroll sideways to turn</span>
+    <div class="book" id="book"><!-- notes injected from content.json by main.js --></div>
+    <div class="reader-foot"><span class="leaf" id="leaf">1 — 1</span></div>
+  </section>
+
+  <!-- INVITATION -->
+  <section class="screen invite" id="invite">
+    <div class="stagger">
+      <span class="label">An open door</span>
+      <h2>If something here met you, I'd like to hear about it.</h2>
+      <p>No newsletter, no notifications — just an address. Write when you have something to say and no particular hurry to say it.</p>
+      <div class="invite-links">
+        <a href="mailto:hello@example.com">Email</a>
+        <a href="#">Instagram</a>
+        <a href="#">Journal</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="colophon">
+    <span>Ahora: to the hour — inviting you to pause and reflect.</span>
+    <span>Made slowly · 2026</span>
+  </div>
+
+  <script>
+    // Netlify Identity: after accepting an invite link, send the user to the admin panel
+    if (window.netlifyIdentity) {
+      window.netlifyIdentity.on('init', (user) => {
+        if (!user) window.netlifyIdentity.on('login', () => { document.location.href = '/admin/'; });
+      });
+    }
+  </script>
+</body>
+</html>
