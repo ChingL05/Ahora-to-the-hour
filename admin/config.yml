@@ -7,7 +7,7 @@ backend:
   repo: ChingL05/Ahora-to-the-hour
   branch: main
   # The OAuth handshake is served by this site's own Netlify functions:
-  base_url: https://YOUR-NETLIFY-SITE.netlify.app   # ← replace with your real site URL after deploy
+  base_url: https://ahora-to-the-hour.netlify.app
   auth_endpoint: /.netlify/functions/auth
 
 # Where uploaded photos are stored, and how they're referenced in content.json.
