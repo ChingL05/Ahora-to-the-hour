@@ -68,7 +68,7 @@
 
   function renderAlbum(album) {
     track.innerHTML = (album || []).map((p) =>
-      `<div class="plate"><div class="figure-reveal"><div class="shot" data-cap="${esc(p.alt)}">` +
+      `<div class="plate"><div class="figure-reveal"><div class="shot" data-cap="${esc(p.caption)}">` +
       `<img src="${esc(p.image)}" alt="${esc(p.alt)}" decoding="async"></div></div></div>`
     ).join('');
   }
@@ -106,12 +106,16 @@
       const c = track.scrollLeft + track.clientWidth / 2;
       plates.forEach((p) => {
         const pc = p.offsetLeft + p.offsetWidth / 2;
-        const ad = Math.min(1, Math.abs(pc - c) / (track.clientWidth * 0.55));
+        const dn = (pc - c) / track.clientWidth;            // signed distance from centre
+        const ad = Math.min(1, Math.abs(dn) / 0.55);        // 0 centred .. 1 off
         const e = ad * ad;
         p.style.opacity = (1 - e * 0.85).toFixed(3);
         p.style.filter = `blur(${(e * 11).toFixed(2)}px)`;
+        // the photo slides in from the side and settles as it reaches centre
+        const fig = p.querySelector('.figure-reveal');
+        fig.style.transform = `translateX(${(clamp(-1, 1, dn) * track.clientWidth * 0.16).toFixed(1)}px)`;
         const shot = p.querySelector('.shot');
-        shot.style.clipPath = `inset(0 0 ${(ad * 18).toFixed(1)}% 0)`;
+        shot.style.clipPath = `inset(0 0 ${(ad * 16).toFixed(1)}% 0)`;
         shot.style.transform = `scale(${(1 + ad * 0.05).toFixed(3)})`;
       });
       const sx = track.scrollLeft;

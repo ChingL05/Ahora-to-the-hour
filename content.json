@@ -2,35 +2,43 @@
   "album": [
     {
       "image": "photos/web/cloud.jpg",
-      "alt": "Rarw! (remember to look up to the sky and your surrounding sometimes.)"
+      "caption": "Rarw! (remember to look up to the sky and your surrounding sometimes.)",
+      "alt": "A small dark cloud in a soft pastel dusk sky"
     },
     {
       "image": "photos/web/Trasaghis.jpg",
-      "alt": "Stillness and reflection."
+      "caption": "Stillness and reflection.",
+      "alt": "Light breaking through cloud over a still mountain lake"
     },
     {
       "image": "photos/web/building.jpg",
-      "alt": "Symmetric."
+      "caption": "Symmetric.",
+      "alt": "Looking up at a brick tower against deep blue sky"
     },
     {
       "image": "photos/web/roadsign.jpg",
-      "alt": "Not so straight 🏳️‍🌈."
+      "caption": "Not so straight 🏳️‍🌈.",
+      "alt": "A quiet street corner in low evening light"
     },
     {
       "image": "photos/web/littleheart.jpg",
-      "alt": "The little heartful moment."
+      "caption": "The little heartful moment.",
+      "alt": "A cup of coffee seen from above, a small mark in the foam"
     },
     {
       "image": "photos/web/43.jpg",
-      "alt": "Golden light."
+      "caption": "Golden light.",
+      "alt": "A modern building at blue hour beneath a wide sky"
     },
     {
       "image": "photos/web/newbanner.jpg",
-      "alt": "Home: Hong Kong."
+      "caption": "Home: Hong Kong.",
+      "alt": "A harbour skyline at night, city lights on dark water"
     },
     {
       "image": "photos/web/onlearning.jpg",
-      "alt": "Depth, Layers, Blues."
+      "caption": "Depth, Layers, Blues.",
+      "alt": "An abstract blue painting, like water from memory"
     }
   ],
   "notes": [
@@ -49,8 +57,8 @@
     {
       "label": "Note 03",
       "title": "A practice of looking twice",
-      "body": "Most things will give you a second meaning if you let them sit. The cracked step. The neighbour's washing line. The way steam leaves a window. I keep these pages as a way of looking twice — once with the eye, once on purpose.\n\nYou are welcome to look alongside me.",
-      "aside": ""
+      "body": "Most things will give you a second meaning if you let them sit. The cracked step. The neighbour's washing line. The way steam leaves a window. I keep these pages as a way of looking twice — once with the eye, once on purpose.",
+      "aside": "You are welcome to look alongside me."
     }
   ]
 }
