@@ -111,9 +111,9 @@
         const e = ad * ad;
         p.style.opacity = (1 - e * 0.85).toFixed(3);
         p.style.filter = `blur(${(e * 11).toFixed(2)}px)`;
-        // the photo slides in from the side and settles as it reaches centre
+        // the photo slides gently in from the side and settles as it reaches centre
         const fig = p.querySelector('.figure-reveal');
-        fig.style.transform = `translateX(${(clamp(-1, 1, dn) * track.clientWidth * 0.16).toFixed(1)}px)`;
+        fig.style.transform = `translateX(${(clamp(-1, 1, dn) * track.clientWidth * 0.08).toFixed(1)}px)`;
         const shot = p.querySelector('.shot');
         shot.style.clipPath = `inset(0 0 ${(ad * 16).toFixed(1)}% 0)`;
         shot.style.transform = `scale(${(1 + ad * 0.05).toFixed(3)})`;

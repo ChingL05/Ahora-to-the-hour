@@ -144,6 +144,8 @@ section.screen { min-height: 100svh; will-change: opacity, transform; }
 .invite-links a:hover { color: var(--amber); border-color: var(--amber); }
 
 .colophon { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 var(--pad) 48px; font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--sage); }
+.colophon a { border-bottom: 1px solid rgba(122, 132, 112, 0.5); padding-bottom: 1px; transition: color 360ms ease, border-color 360ms ease; }
+.colophon a:hover { color: var(--amber); border-color: var(--amber); }
 
 /* ---------- responsive: tablet ---------- */
 @media (max-width: 920px) {
