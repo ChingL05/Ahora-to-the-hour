@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Editor / tooling (not part of the website)
+.claude/
+
+# Optional: uncomment to keep heavy originals out of the repo
+# (the site only needs photos/web/. Keep them if you want a backup in git.)
+# photos/*.jpeg
+# photos/*.jpg
+# photos/*.JPG
+# photos/*.png
