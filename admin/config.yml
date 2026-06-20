@@ -30,7 +30,7 @@ collections:
             summary: "{{fields.alt}}"
             fields:
               - { label: "Photo", name: "image", widget: "image" }
-              - { label: "Description (for accessibility)", name: "alt", widget: "string", required: false }
+              - { label: "Caption", name: "alt", widget: "string", required: false, hint: "Shown beneath the photo, and read aloud by screen readers." }
 
           - label: "Pages (notes)"
             name: "notes"

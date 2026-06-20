@@ -68,7 +68,7 @@
 
   function renderAlbum(album) {
     track.innerHTML = (album || []).map((p) =>
-      `<div class="plate"><div class="figure-reveal"><div class="shot">` +
+      `<div class="plate"><div class="figure-reveal"><div class="shot" data-cap="${esc(p.alt)}">` +
       `<img src="${esc(p.image)}" alt="${esc(p.alt)}" decoding="async"></div></div></div>`
     ).join('');
   }
@@ -92,6 +92,7 @@
     if (!plates.length) return;
     const albumHead = document.querySelector('.album-head');
     const countEl = document.getElementById('count');
+    const capEl = document.getElementById('cap');
     const pad2 = (n) => String(n).padStart(2, '0');
     const clampX = (x) => Math.max(0, Math.min(track.scrollWidth - track.clientWidth, x));
 
@@ -117,7 +118,18 @@
       albumHead.style.opacity = clamp(0, 1, 1 - sx / (track.clientWidth * 0.42)).toFixed(3);
       albumHead.style.transform = `translateX(${(-sx * 0.35).toFixed(1)}px)`;
     }
-    const syncMeta = () => { countEl.textContent = `${pad2(activeIndex() + 1)} / ${pad2(plates.length)}`; };
+    let lastCap = '';
+    function syncMeta() {
+      const i = activeIndex();
+      countEl.textContent = `${pad2(i + 1)} / ${pad2(plates.length)}`;
+      if (!capEl) return;
+      const cap = plates[i].querySelector('.shot').dataset.cap || '';
+      if (cap !== lastCap) {
+        lastCap = cap;
+        capEl.style.opacity = 0;
+        setTimeout(() => { capEl.textContent = cap; capEl.style.opacity = 1; }, 150);
+      }
+    }
     const render = () => { updateReveal(); syncMeta(); };
 
     let target = 0, raf = null;

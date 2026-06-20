@@ -1,5 +1,12 @@
 # Ahora — to the hour
 
+**Live:** https://ahora-to-the-hour.netlify.app · **Repo:** https://github.com/ChingL05/Ahora-to-the-hour
+**Deploy:** any push to `main` auto-deploys on Netlify (~30s). Content is also editable at `/admin`.
+
+> **Working on this later (or with a fresh AI session):** the `/admin` panel commits content
+> straight to GitHub, so the repo can be ahead of your local copy. **Always `git pull` before
+> editing**, then commit & push. Code/design → edit files; photos & notes → use `/admin`.
+
 A quiet personal site: an album you leaf through and a few pages you read.
 
 It is a **static site** whose content lives in `content.json` and can be edited two ways:

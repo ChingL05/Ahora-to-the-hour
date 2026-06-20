@@ -107,6 +107,7 @@ section.screen { min-height: 100svh; will-change: opacity, transform; }
 .album-foot { display: flex; align-items: center; justify-content: center; padding: clamp(20px, 4vh, 40px) var(--pad) clamp(28px, 5vh, 52px); }
 .album-meta { text-align: center; }
 .album-meta .count { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; color: rgba(242, 238, 228, 0.5); }
+.album-meta .cap { display: block; margin-top: 10px; max-width: 42ch; margin-inline: auto; font-style: italic; color: rgba(242, 238, 228, 0.82); transition: opacity 450ms var(--ease); }
 
 /* ---------- the pages (book, turned by horizontal scroll) ---------- */
 .reader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(80px, 11vh, 130px) var(--pad) clamp(40px, 7vh, 80px); position: relative; }
@@ -129,9 +130,6 @@ section.screen { min-height: 100svh; will-change: opacity, transform; }
 .page p { margin: 0 0 18px; max-width: 34ch; text-wrap: pretty; }
 .page p:last-child { margin-bottom: 0; }
 .page .aside { font-style: italic; color: var(--muted); }
-.page.closing .stagger { align-items: center; text-align: center; display: flex; flex-direction: column; }
-.page.closing .pull { font-family: var(--serif); font-weight: 300; font-style: italic; font-size: clamp(1.4rem, 2.6vw + 0.6rem, 2.3rem); line-height: 1.42; max-width: 24ch; margin: 0; }
-.page.closing .pull em { color: var(--amber); }
 .page .folio { position: absolute; bottom: clamp(24px, 3vw, 36px); left: 0; right: 0; text-align: center; font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; color: var(--sage); }
 .reader-foot { margin-top: clamp(28px, 5vh, 52px); }
 .reader-foot .leaf { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; color: var(--sage); }
