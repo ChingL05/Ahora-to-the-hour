@@ -1,0 +1,9 @@
+# Netlify configuration for Ahora
+# Static site (no build) + serverless functions that handle the GitHub OAuth login for /admin.
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"

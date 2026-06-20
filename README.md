@@ -55,31 +55,44 @@ The album counter and page total update themselves.
 
 ---
 
-## The no-code `/admin` panel (one-time setup)
+## The no-code `/admin` panel (one-time setup — GitHub login)
 
-The site ships with **Decap CMS** (`admin/`). Once hosted on Netlify it gives you a login at
-`yoursite.com/admin` where you upload photos and write notes in a form — it saves to
-`content.json` and republishes automatically. Setup is a one-time thing:
+The site ships with **Decap CMS** (`admin/`). You log in with **GitHub**; Decap then commits your
+edits to this repo and Netlify rebuilds the site. The GitHub login is handled by two small
+serverless functions already in this repo (`netlify/functions/auth.js` + `callback.js`), so no
+third-party service is needed. (Netlify Identity, which the old setup used, is deprecated.)
 
-1. **Put the project in a GitHub repo.**
-   ```bash
-   cd "Ahora Now"
-   git init && git add -A && git commit -m "Ahora site"
-   # create an empty repo on github.com, then:
-   git remote add origin https://github.com/<you>/<repo>.git
-   git push -u origin main
-   ```
-2. **Deploy on Netlify** — at app.netlify.com → *Add new site → Import from GitHub* → pick the repo.
-   No build command; publish directory is the project root. You'll get a `*.netlify.app` URL
-   (add your own domain later under *Domain settings*).
-3. **Turn on logins** — in the Netlify site dashboard:
-   - *Identity → Enable Identity*
-   - *Identity → Services → Git Gateway → Enable*
-   - *Identity → Invite users →* invite your email; accept the emailed invite.
-4. **Edit** — go to `yoursite.com/admin`, log in, and add photos / notes. Changes commit to
-   GitHub and the site refreshes in ~30 seconds.
+**1. Deploy on Netlify**
+app.netlify.com → *Add new site → Import from GitHub* → pick `Ahora-to-the-hour`.
+Settings come from `netlify.toml` (publish = root, functions = `netlify/functions`). You'll get a
+`https://<something>.netlify.app` URL — note it (call it **SITE_URL**).
 
-> If you keep the branch name different from `main`, update `branch:` in `admin/config.yml`.
+**2. Point the config at your site**
+In `admin/config.yml`, set `base_url:` to your **SITE_URL**, then commit & push:
+```bash
+git add admin/config.yml && git commit -m "Set admin base_url" && git push
+```
+
+**3. Create a GitHub OAuth App**
+github.com → *Settings → Developer settings → OAuth Apps → New OAuth App*:
+- **Homepage URL:** your SITE_URL
+- **Authorization callback URL:** `SITE_URL/.netlify/functions/callback`
+- Click *Register*, copy the **Client ID**, then *Generate a new client secret* and copy it.
+
+**4. Add the secrets to Netlify**
+Netlify → *Site configuration → Environment variables → Add*:
+- `GITHUB_OAUTH_ID` = the Client ID
+- `GITHUB_OAUTH_SECRET` = the Client secret
+
+Then *Deploys → Trigger deploy → Deploy site* so the functions pick up the variables.
+
+**5. Edit**
+Go to `SITE_URL/admin` → *Login with GitHub* → authorise. Add photos / write notes; each save
+commits to the repo and the site refreshes in ~30 seconds.
+
+> Notes: the repo is **public**, so the functions request the `public_repo` scope. If you ever make
+> the repo private, change `public_repo` → `repo` in `netlify/functions/auth.js`. If your branch
+> isn't `main`, update `branch:` in `admin/config.yml`.
 
 ### One caveat: image size from the admin panel
 Photos uploaded through `/admin` are stored **at their original size** (the `optimize-photos.sh`
