@@ -113,7 +113,7 @@
         p.style.filter = `blur(${(e * 11).toFixed(2)}px)`;
         // the photo slides gently in from the side and settles as it reaches centre
         const fig = p.querySelector('.figure-reveal');
-        fig.style.transform = `translateX(${(clamp(-1, 1, dn) * track.clientWidth * 0.08).toFixed(1)}px)`;
+        fig.style.transform = `translateX(${(clamp(-1, 1, dn) * track.clientWidth * 0.06).toFixed(1)}px)`;
         const shot = p.querySelector('.shot');
         shot.style.clipPath = `inset(0 0 ${(ad * 16).toFixed(1)}% 0)`;
         shot.style.transform = `scale(${(1 + ad * 0.05).toFixed(3)})`;
@@ -163,8 +163,9 @@
       idle = setTimeout(() => goTo(activeIndex()), 150);
     }, { passive: false });
 
+    // drag to leaf (mouse only — touch uses native scrolling + snap, which feels right on mobile)
     let down = false, sx = 0, sl = 0;
-    track.addEventListener('pointerdown', (e) => { down = true; sx = e.clientX; sl = track.scrollLeft; track.classList.add('dragging'); track.setPointerCapture(e.pointerId); });
+    track.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; down = true; sx = e.clientX; sl = track.scrollLeft; track.classList.add('dragging'); track.setPointerCapture(e.pointerId); });
     track.addEventListener('pointermove', (e) => { if (down) { track.scrollLeft = clampX(sl - (e.clientX - sx)); target = track.scrollLeft; render(); } });
     const endDrag = () => { if (down) { down = false; track.classList.remove('dragging'); goTo(activeIndex()); } };
     track.addEventListener('pointerup', endDrag);

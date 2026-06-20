@@ -87,7 +87,8 @@ section.screen { min-height: 100svh; will-change: opacity, transform; }
 /* ---------- the album (dark sky) ---------- */
 .album { position: relative; display: flex; flex-direction: column; background: linear-gradient(180deg, #1b2230 0%, #141a25 55%, #0f141d 100%); }
 .album .label { color: rgba(242, 238, 228, 0.66); }
-.album-head { position: absolute; top: clamp(72px, 11vh, 120px); left: var(--pad); z-index: 5; will-change: opacity, transform; }
+/* title sits in normal flow above the photos, so it never overlaps them */
+.album-head { padding: clamp(72px, 11vh, 120px) var(--pad) clamp(14px, 2vh, 26px); will-change: opacity, transform; }
 .track {
   flex: 1; min-height: 0;
   display: flex; align-items: center; gap: var(--slide-gap);
@@ -99,10 +100,10 @@ section.screen { min-height: 100svh; will-change: opacity, transform; }
 }
 .track::-webkit-scrollbar { display: none; }
 .track.dragging { cursor: grabbing; }
-.plate { flex: 0 0 var(--slide-w); height: var(--shot-h); display: flex; align-items: center; justify-content: center; will-change: opacity, filter; }
+.plate { flex: 0 0 var(--slide-w); height: var(--shot-h); max-height: 100%; display: flex; align-items: center; justify-content: center; will-change: opacity, filter; }
 /* frameless: the photo floats whole on the dark sky, no card / background */
 .shot { position: relative; max-width: 100%; max-height: 100%; overflow: hidden; }
-.shot img { display: block; max-width: 100%; max-height: var(--shot-h); width: auto; height: auto; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+.shot img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; user-select: none; -webkit-user-drag: none; }
 
 .album-foot { display: flex; align-items: center; justify-content: center; padding: clamp(20px, 4vh, 40px) var(--pad) clamp(28px, 5vh, 52px); }
 .album-meta { text-align: center; }
@@ -146,6 +147,12 @@ section.screen { min-height: 100svh; will-change: opacity, transform; }
 .colophon { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 var(--pad) 48px; font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--sage); }
 .colophon a { border-bottom: 1px solid rgba(122, 132, 112, 0.5); padding-bottom: 1px; transition: color 360ms ease, border-color 360ms ease; }
 .colophon a:hover { color: var(--amber); border-color: var(--amber); }
+
+/* ---------- touch devices: native momentum scroll + snap (feels right on mobile) ---------- */
+@media (pointer: coarse) {
+  .track { scroll-snap-type: x mandatory; scroll-padding-inline: calc((100vw - var(--slide-w)) / 2); }
+  .plate { scroll-snap-align: center; }
+}
 
 /* ---------- responsive: tablet ---------- */
 @media (max-width: 920px) {
