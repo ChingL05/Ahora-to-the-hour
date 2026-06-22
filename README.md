@@ -9,15 +9,21 @@
 
 A quiet personal site: an album you leaf through and a few pages you read.
 
-It is a **static site** whose content lives in `content.json` and can be edited two ways:
-1. **From the `/admin` panel** (no code) — upload photos and write notes in a form. *(after the one-time setup below)*
-2. **By hand** — edit `content.json` directly.
+It is a **static site**. The album lives in `content.json`; each blog is its own file in
+`content/blogs/`. A tiny build step compiles them into `published.json`, which the site reads.
+Content can be edited two ways:
+1. **From the `/admin` panel** (no code) — upload photos and write blogs in a form, with a
+   **draft** step so a blog isn't published until it's ready. *(after the one-time setup below)*
+2. **By hand** — edit `content.json` / the files in `content/blogs/` directly.
 
 ```
-index.html        ← page structure (cover, album, pages, invitation)
+index.html        ← page structure (cover, album, blogs, invitation)
 styles.css        ← all styling
-main.js           ← motion + builds the album/pages from content.json
-content.json      ← YOUR CONTENT lives here (photos list + notes)
+main.js           ← motion + builds the album/blogs from published.json
+content.json      ← the ALBUM (photos list)
+content/blogs/    ← one JSON file per BLOG (drafted independently)
+build-content.js  ← compiles album + published blogs → published.json (runs on deploy)
+published.json    ← generated; what the site actually loads (don't hand-edit)
 admin/            ← the no-code editing panel (Decap CMS)
 optimize-photos.sh← shrinks big photos for the web
 photos/           ← original photos
@@ -49,16 +55,20 @@ Open `content.json`. It has two lists:
 ```
 Add that line to the `"album"` list, in the order you want.
 
-**Add a note** — add an entry to the `"notes"` list:
+**Add a blog** — create a new file `content/blogs/your-title.json`:
 ```json
 {
   "label": "Note 04",
   "title": "Your title",
   "body": "First paragraph.\n\nSecond paragraph.",
-  "aside": ""
+  "aside": "",
+  "order": 4,
+  "featured": false,
+  "archived": false
 }
 ```
-The album counter and page total update themselves.
+`order` sets its place in the book (lower = earlier). The album counter and page total update
+themselves. (Editing by hand publishes immediately — the Draft step only exists in `/admin`.)
 
 ---
 
@@ -94,8 +104,15 @@ Netlify → *Site configuration → Environment variables → Add*:
 Then *Deploys → Trigger deploy → Deploy site* so the functions pick up the variables.
 
 **5. Edit**
-Go to `SITE_URL/admin` → *Login with GitHub* → authorise. Add photos / write notes; each save
+Go to `SITE_URL/admin` → *Login with GitHub* → authorise. Add photos / write blogs; each save
 commits to the repo and the site refreshes in ~30 seconds.
+
+### Drafts (Blogs only)
+Blogs use Decap's **editorial workflow**: a new or edited blog gets a status —
+**Draft → In review → Ready** — and is *not* on the live site until you open it and click
+**Publish**. Saving a draft commits to its own branch (a GitHub pull request), so you can craft a
+blog over several sittings without anything showing publicly. Photos in the Album don't have this
+step — they publish on save.
 
 > Notes: the repo is **public**, so the functions request the `public_repo` scope. If you ever make
 > the repo private, change `public_repo` → `repo` in `netlify/functions/auth.js`. If your branch

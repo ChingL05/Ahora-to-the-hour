@@ -1,7 +1,8 @@
 /* ============================================================
    Ahora — to the hour · interactions
-   Content (album photos + notes) is loaded from content.json,
-   so it can be edited from the /admin panel without touching code.
+   Content is loaded from published.json — compiled at deploy time from the
+   album (content.json) and the published blogs (content/blogs/*.json) — so it
+   can be edited from the /admin panel without touching code.
    ============================================================ */
 (() => {
   'use strict';
@@ -280,7 +281,7 @@
   });
 
   /* ---------- load content, build, wire up ---------- */
-  fetch('content.json', { cache: 'no-cache' })
+  fetch('published.json', { cache: 'no-cache' })
     .then((r) => r.json())
     .then((data) => {
       renderAlbum((data.album || []).filter((p) => !p.archived));

@@ -48,5 +48,34 @@
       "alt": "An abstract blue painting, like water from memory",
       "archived": true
     }
+  ],
+  "notes": [
+    {
+      "label": "Note 01",
+      "title": "On the particular light of late afternoon",
+      "body": "There is a light, around four o'clock in the colder months, that makes ordinary streets feel borrowed from memory. It doesn't ask for anything. It arrives, lays itself across a wall, and leaves again before you've decided what to do with it.",
+      "aside": "I have learned to stop for it — to let the errand wait.",
+      "featured": true,
+      "archived": false,
+      "order": 1
+    },
+    {
+      "label": "Note 02",
+      "title": "What the table remembers",
+      "body": "A cup, a folded napkin, the last of the morning's bread. Small still lifes assemble themselves without my asking. For a while I tried to tidy them away. Now I leave them, because they are honest about how a day is actually lived.\n\nNone of it is composed. That is the part I am most fond of.",
+      "aside": "",
+      "featured": true,
+      "archived": false,
+      "order": 2
+    },
+    {
+      "label": "Note 03",
+      "title": "A practice of looking twice",
+      "body": "Most things will give you a second meaning if you let them sit. The cracked step. The neighbour's washing line. The way steam leaves a window. I keep these pages as a way of looking twice — once with the eye, once on purpose.",
+      "aside": "You are welcome to look alongside me.",
+      "featured": false,
+      "archived": true,
+      "order": 3
+    }
   ]
 }

@@ -10,39 +10,54 @@ backend:
   base_url: https://ahora-to-the-hour.netlify.app
   auth_endpoint: /.netlify/functions/auth
 
-# Where uploaded photos are stored, and how they're referenced in content.json.
+# Drafts: saving a Blog no longer goes straight to the live site. Each blog gets
+# a status — Draft → In review → Ready — and nothing is published until you hit
+# "Publish". (Photos in the Album still save directly; they don't need drafts.)
+publish_mode: editorial_workflow
+
+# Where uploaded photos are stored, and how they're referenced in the content.
 media_folder: "photos/web"
 public_folder: "photos/web"
 
 collections:
+  # ---- The Album: a single shared file, edited in place (no draft step) ----
   - name: "site"
-    label: "Ahora"
+    label: "Album"
     files:
       - name: "content"
-        label: "Album & Pages"
+        label: "The Album"
         file: "content.json"
-        description: "Add or reorder photos in the album, and write the notes."
+        description: "Add, reorder, or archive the photographs in the album."
         fields:
           - label: "Album (photos)"
             name: "album"
             widget: "list"
             label_singular: "Photo"
             summary: "{{fields.alt}}"
+            collapsed: true          # keep the list tidy — each photo shows as one line
             fields:
               - { label: "Photo", name: "image", widget: "image" }
               - { label: "Caption", name: "caption", widget: "string", required: false, hint: "Shown beneath the photo." }
               - { label: "Alt text", name: "alt", widget: "string", required: false, hint: "A plain description of the image, for screen readers." }
               - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }
 
-          - label: "Pages (notes)"
-            name: "notes"
-            widget: "list"
-            label_singular: "Note"
-            summary: "{{fields.title}}"
-            fields:
-              - { label: "Small label", name: "label", widget: "string", hint: "e.g. Note 04" }
-              - { label: "Title", name: "title", widget: "string" }
-              - { label: "Body", name: "body", widget: "text", hint: "Leave a blank line between paragraphs." }
-              - { label: "Closing aside (optional, italic)", name: "aside", widget: "string", required: false }
-              - { label: "Featured", name: "featured", widget: "boolean", default: false, required: false, hint: "On = highlighted in the 'Featured' strip above the Blogs. Up to 3 — extras beyond 3 are ignored. Ignored while Archived." }
-              - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }
+  # ---- Blogs: one file per blog, so each can be drafted independently ----
+  - name: "blogs"
+    label: "Blogs"
+    label_singular: "Blog"
+    folder: "content/blogs"
+    create: true
+    format: "json"
+    slug: "{{slug}}"
+    identifier_field: "title"
+    summary: "{{fields.order}} · {{fields.title}}"   # tidy one-line summary in the list
+    sortable_fields: ["order", "title"]
+    description: "Write a blog. Save it as a Draft to keep working without publishing; move it to Ready and Publish when it's done."
+    fields:
+      - { label: "Small label", name: "label", widget: "string", hint: "e.g. Note 04" }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Body", name: "body", widget: "text", hint: "Leave a blank line between paragraphs." }
+      - { label: "Closing aside (optional, italic)", name: "aside", widget: "string", required: false }
+      - { label: "Order", name: "order", widget: "number", value_type: "int", default: 0, required: false, hint: "Lower numbers appear first in the book." }
+      - { label: "Featured", name: "featured", widget: "boolean", default: false, required: false, hint: "On = highlighted in the 'Featured' strip above the Blogs. Up to 3 — extras beyond 3 are ignored. Ignored while Archived." }
+      - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }

@@ -1,6 +1,6 @@
 /* ============================================================
    Ahora — Archive page
-   Reads content.json and shows only the items marked "archived".
+   Reads published.json and shows only the items marked "archived".
    Photos → compact grid (tap to enlarge). Writing → titled list (tap to read).
    ============================================================ */
 (() => {
@@ -74,7 +74,7 @@
     else if (e.key === 'ArrowLeft') show(cur - 1);
   });
 
-  fetch('content.json', { cache: 'no-cache' })
+  fetch('published.json', { cache: 'no-cache' })
     .then((r) => r.json())
     .then((data) => {
       photos = (data.album || []).filter((p) => p.archived);

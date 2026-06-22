@@ -1,7 +1,10 @@
 # Netlify configuration for Ahora
-# Static site (no build) + serverless functions that handle the GitHub OAuth login for /admin.
+# Static site + a tiny Node build that compiles the album and the published
+# blogs into published.json. Serverless functions handle the GitHub OAuth
+# login for /admin.
 
 [build]
+  command = "node build-content.js"
   publish = "."
   functions = "netlify/functions"
 
