@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ahora — Archive</title>
+  <meta name="description" content="The Ahora archive — everything set aside, kept quietly in one place." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script defer src="archive.js"></script>
+</head>
+<body class="archive-page">
+
+  <header class="masthead">
+    <a class="wordmark" href="index.html">Ahora<span class="dot">.</span></a>
+    <nav class="top">
+      <a href="index.html#album">Album</a>
+      <a href="index.html#reader">Blogs</a>
+      <a href="index.html#invite">Say hello</a>
+    </nav>
+  </header>
+
+  <main class="archive">
+    <header class="arc-head">
+      <span class="label">Archive</span>
+      <h1>A keeping of hours.</h1>
+      <p class="intro">What is Now, become the past at last. The past rests here — quietly.</p>
+    </header>
+
+    <section class="arc-section">
+      <span class="label">Photographs</span>
+      <div id="arc-photos" class="arc-grid"></div>
+    </section>
+
+    <section class="arc-section">
+      <span class="label">Writing</span>
+      <div id="arc-notes" class="arc-list"></div>
+    </section>
+
+    <p class="arc-back"><a href="index.html">← Back to the front</a></p>
+  </main>
+
+  <!-- lightbox for viewing an archived photo -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Close">×</button>
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous photograph">‹</button>
+    <figure class="lb-figure">
+      <img id="lbImg" src="" alt="" />
+      <figcaption class="lb-cap" id="lbCap"></figcaption>
+    </figure>
+    <button class="lb-nav lb-next" id="lbNext" aria-label="Next photograph">›</button>
+  </div>
+
+</body>
+</html>

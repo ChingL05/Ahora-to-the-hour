@@ -65,6 +65,7 @@
   const track = document.getElementById('track');
   const book = document.getElementById('book');
   const leafEl = document.getElementById('leaf');
+  const featuredEl = document.getElementById('featured');
 
   function renderAlbum(album) {
     track.innerHTML = (album || []).map((p) =>
@@ -84,6 +85,31 @@
         `<span class="folio">${i + 1}</span></article>`;
     }).join('');
     if (leafEl) leafEl.textContent = `1 — ${(notes || []).length || 1}`;
+  }
+
+  // The "Featured" strip above the book — up to 3 highlighted notes.
+  // `notes` is the same (non-archived) list the book is built from, so the
+  // index on each card maps straight to a page the reader can flip to.
+  function renderFeatured(notes) {
+    if (!featuredEl) return;
+    const picks = (notes || [])
+      .map((n, i) => ({ n, i }))
+      .filter(({ n }) => n.featured)
+      .slice(0, 3);
+    if (!picks.length) { featuredEl.hidden = true; featuredEl.innerHTML = ''; return; }
+    featuredEl.hidden = false;
+    featuredEl.innerHTML =
+      `<span class="label feat-label">Featured</span>` +
+      `<div class="feat-row">` +
+      picks.map(({ n, i }) => {
+        const lead = String(n.body || '').split(/\n\s*\n/).filter(Boolean)[0] || '';
+        return `<button class="feat-card" data-to="${i}">` +
+          `<span class="label">${esc(n.label)}</span>` +
+          `<span class="feat-title">${esc(n.title)}</span>` +
+          `<span class="feat-lead">${esc(lead)}</span>` +
+          `<span class="feat-cue">Read →</span></button>`;
+      }).join('') +
+      `</div>`;
   }
 
   /* ---------- THE ALBUM ---------- */
@@ -228,7 +254,10 @@
 
     showPage(0, false);
     pio.observe(pages[0]);   // first page staggers in when scrolled into view
-    readerApi = { flip };
+    readerApi = {
+      flip,
+      to(n) { if (lock) return; lock = true; showPage(n); setTimeout(() => { lock = false; }, 720); },
+    };
   }
 
   /* ---------- shared keyboard + anchors (wired once, use whatever exists) ---------- */
@@ -242,13 +271,22 @@
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (ev) => { const t = document.getElementById(a.getAttribute('href').slice(1)); if (!t) return; ev.preventDefault(); scrollTo(t); });
   });
+  // a featured card opens its blog: turn the book to that page, then bring it into view
+  if (featuredEl) featuredEl.addEventListener('click', (e) => {
+    const card = e.target.closest('.feat-card');
+    if (!card || !readerApi) return;
+    readerApi.to(+card.dataset.to);
+    book.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  });
 
   /* ---------- load content, build, wire up ---------- */
   fetch('content.json', { cache: 'no-cache' })
     .then((r) => r.json())
     .then((data) => {
-      renderAlbum(data.album);
-      renderNotes(data.notes);
+      renderAlbum((data.album || []).filter((p) => !p.archived));
+      const liveNotes = (data.notes || []).filter((n) => !n.archived);
+      renderNotes(liveNotes);
+      renderFeatured(liveNotes);
       initAlbum();
       initReader();
       updateSections();

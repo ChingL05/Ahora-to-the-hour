@@ -32,6 +32,7 @@ collections:
               - { label: "Photo", name: "image", widget: "image" }
               - { label: "Caption", name: "caption", widget: "string", required: false, hint: "Shown beneath the photo." }
               - { label: "Alt text", name: "alt", widget: "string", required: false, hint: "A plain description of the image, for screen readers." }
+              - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }
 
           - label: "Pages (notes)"
             name: "notes"
@@ -43,3 +44,5 @@ collections:
               - { label: "Title", name: "title", widget: "string" }
               - { label: "Body", name: "body", widget: "text", hint: "Leave a blank line between paragraphs." }
               - { label: "Closing aside (optional, italic)", name: "aside", widget: "string", required: false }
+              - { label: "Featured", name: "featured", widget: "boolean", default: false, required: false, hint: "On = highlighted in the 'Featured' strip above the Blogs. Up to 3 — extras beyond 3 are ignored. Ignored while Archived." }
+              - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }
