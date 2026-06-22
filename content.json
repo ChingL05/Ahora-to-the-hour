@@ -9,20 +9,20 @@
     {
       "image": "photos/web/Trasaghis.jpg",
       "caption": "Stillness and reflection.",
-      "alt": "Light breaking through cloud over a still mountain lake",
+      "alt": "Light breaking through cloud over a still mountain lake in Trasaghis, Italy.",
       "archived": false
     },
     {
       "image": "photos/web/building.jpg",
-      "caption": "Symmetric.",
-      "alt": "Looking up at a brick tower against deep blue sky",
+      "caption": "Almost perfect.",
+      "alt": "",
       "archived": false
     },
     {
       "image": "photos/web/roadsign.jpg",
       "caption": "Not so straight 🏳️‍🌈.",
       "alt": "A quiet street corner in low evening light",
-      "archived": false
+      "archived": true
     },
     {
       "image": "photos/web/littleheart.jpg",
@@ -38,7 +38,7 @@
     },
     {
       "image": "photos/web/newbanner.jpg",
-      "caption": "Home: Hong Kong.",
+      "caption": "Home: Hong Kong 🇭🇰",
       "alt": "A harbour skyline at night, city lights on dark water",
       "archived": false
     },
@@ -46,7 +46,7 @@
       "image": "photos/web/onlearning.jpg",
       "caption": "Depth, Layers, Blues.",
       "alt": "An abstract blue painting, like water from memory",
-      "archived": true
+      "archived": false
     }
   ]
 }
