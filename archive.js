@@ -7,6 +7,11 @@
   'use strict';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // inline emphasis for the aside: **bold**, and *italic* / _italic_ (the aside is already italic by default)
+  const fmt = (s) => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>');
 
   if (!reduce && window.Lenis) {
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
@@ -30,7 +35,7 @@
     if (!list.length) { notesEl.innerHTML = '<p class="arc-empty">Nothing set aside yet.</p>'; return; }
     notesEl.innerHTML = list.map((n) => {
       const paras = String(n.body || '').split(/\n\s*\n/).filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('');
-      const aside = n.aside ? `<p class="aside">${esc(n.aside)}</p>` : '';
+      const aside = n.aside ? `<p class="aside">${fmt(n.aside)}</p>` : '';
       const lab = esc((n.label || '').replace(/\s*\d+\s*$/, '') || 'Note');  // archive drops the numbering
       return `<article class="arc-entry">` +
         `<button class="arc-entry-head"><span class="label">${lab}</span><span class="arc-title">${esc(n.title)}</span></button>` +
