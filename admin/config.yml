@@ -33,8 +33,8 @@ collections:
             name: "album"
             widget: "list"
             label_singular: "Photo"
-            summary: "{{fields.alt}}"
-            collapsed: true          # keep the list tidy — each photo shows as one line
+            summary: "{{fields.caption}}"
+            collapsed: true          # keep the list tidy — each photo shows its caption on one line
             fields:
               - { label: "Photo", name: "image", widget: "image" }
               - { label: "Caption", name: "caption", widget: "string", required: false, hint: "Shown beneath the photo." }
@@ -57,7 +57,7 @@ collections:
       - { label: "Small label", name: "label", widget: "string", hint: "e.g. Note 04" }
       - { label: "Title", name: "title", widget: "string" }
       - { label: "Body", name: "body", widget: "text", hint: "Leave a blank line between paragraphs." }
-      - { label: "Closing aside (optional, italic)", name: "aside", widget: "string", required: false }
+      - { label: "Closing aside (optional)", name: "aside", widget: "string", required: false, hint: "Shown in italic automatically. To make a word bold, wrap it in **double asterisks** — e.g. it was **never** empty. (Single *asterisks* also force italic.)" }
       - { label: "Order", name: "order", widget: "number", value_type: "int", default: 0, required: false, hint: "Lower numbers appear first in the book." }
       - { label: "Featured", name: "featured", widget: "boolean", default: false, required: false, hint: "On = highlighted in the 'Featured' strip above the Blogs. Up to 3 — extras beyond 3 are ignored. Ignored while Archived." }
       - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }

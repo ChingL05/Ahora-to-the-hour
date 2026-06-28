@@ -9,6 +9,11 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const clamp = (lo, hi, v) => Math.max(lo, Math.min(hi, v));
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // inline emphasis for the aside: **bold**, and *italic* / _italic_ (the aside is already italic by default)
+  const fmt = (s) => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>');
 
   /* ---------- Lenis: vertical inertia scrolling ---------- */
   let lenis = null;
@@ -27,11 +32,87 @@
     lenis ? lenis.scrollTo(el, { duration: 1.6 })
           : window.scrollTo({ top: el.getBoundingClientRect().top + scrollY, behavior: 'smooth' });
 
-  /* ---------- reveals: cover & invitation ---------- */
+  /* ---------- reveals: the invitation staggers in when scrolled into view ---------- */
   const vio = new IntersectionObserver((es) => {
     es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); vio.unobserve(e.target); } });
   }, { threshold: 0.2, rootMargin: '0px 0px -6% 0px' });
-  document.querySelectorAll('.cover .lines, .cover .stagger, .invite .stagger').forEach((el) => vio.observe(el));
+  document.querySelectorAll('.invite .stagger').forEach((el) => vio.observe(el));
+
+  /* ---------- the cover: "Ahora" arriving like rain on still water ----------
+     First visit: A drops with a slow raindrop ripple, the long pause holds,
+     then h-o-r-a bloom in together and the body settles in beneath. Returning
+     to the cover keeps the word in place but re-drops the A. The ripple's
+     colour and a live clock drift with the visitor's local hour. */
+  function initCover() {
+    const cover = document.querySelector('.cover');
+    const word = cover && cover.querySelector('.word');
+    if (!cover || !word) return;
+    const bg = cover.querySelector('.bg-ripple');
+    const clockEl = cover.querySelector('.clock');
+    const body = cover.querySelector('.cover-body');
+
+    // mirrors the CSS knobs, so the text settles once the word has formed
+    const A_DELAY = 0.25, GAP_AH = 2.4, GAP_HORA = 0, RISE_HORA = 1.3;
+    const lastLand = A_DELAY + GAP_AH + GAP_HORA * 3 + 0.16 + RISE_HORA;
+    const KEY = 'ahora-cover-played';
+    const root = document.documentElement;
+
+    // a whisper of warmth across the day, always within the site's palette
+    const tintForHour = (h) =>
+      h < 6  ? ['116,126,120', '#717C74'] :
+      h < 11 ? ['122,132,112', '#7A8470'] :
+      h < 16 ? ['124,130,110', '#7A8470'] :
+      h < 20 ? ['132,122,100', '#7E7058'] :
+               ['126,110,90',  '#766452'];
+    function tick() {
+      const d = new Date();
+      const [rgb, accent] = tintForHour(d.getHours());
+      root.style.setProperty('--ripple-rgb', rgb);
+      root.style.setProperty('--accent', accent);
+      const p2 = (n) => String(n).padStart(2, '0');
+      if (clockEl) clockEl.innerHTML = `now — <b>${p2(d.getHours())}:${p2(d.getMinutes())}</b>`;
+    }
+    tick();
+    setInterval(tick, 30000);
+
+    const bgRipple = () => { if (bg) { bg.classList.remove('go'); void bg.offsetWidth; bg.classList.add('go'); } };
+    const revealText = () => { cover.classList.add('revealed'); if (body) body.classList.add('in'); };
+
+    let timers = [];
+    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+    function playFull() {   // first visit: the word spells itself out
+      clearTimers();
+      word.classList.remove('settled', 'stir', 'play'); void word.offsetWidth;
+      cover.classList.remove('revealed'); if (body) body.classList.remove('in');
+      word.classList.add('play');
+      timers.push(setTimeout(bgRipple, (lastLand - 0.15) * 1000));
+      timers.push(setTimeout(revealText, (lastLand - 0.1) * 1000));
+      sessionStorage.setItem(KEY, '1');
+    }
+    function settle() {     // reduced motion: word + text simply present
+      clearTimers();
+      word.classList.remove('play', 'stir'); word.classList.add('settled');
+      revealText();
+    }
+    function stir() {       // returning: A re-drops, the water stirs again
+      clearTimers();
+      word.classList.remove('play'); word.classList.add('settled');
+      revealText();
+      word.classList.remove('stir'); void word.offsetWidth; word.classList.add('stir');
+      bgRipple();
+    }
+
+    new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        if (reduce) settle();
+        else if (sessionStorage.getItem(KEY)) stir();
+        else playFull();
+      });
+    }, { threshold: 0.55 }).observe(cover);
+  }
+  initCover();
 
   /* ---------- which big section the arrow keys belong to ---------- */
   let active = 'album';
@@ -78,7 +159,7 @@
   function renderNotes(notes) {
     book.innerHTML = (notes || []).map((n, i) => {
       const paras = String(n.body || '').split(/\n\s*\n/).filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('');
-      const aside = n.aside ? `<p class="aside">${esc(n.aside)}</p>` : '';
+      const aside = n.aside ? `<p class="aside">${fmt(n.aside)}</p>` : '';
       return `<article class="page${i === 0 ? ' current' : ''}">` +
         `<span class="runhead">Ahora — Field Notes</span>` +
         `<div class="stagger"><span class="label">${esc(n.label)}</span>` +
