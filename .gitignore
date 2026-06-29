@@ -4,9 +4,9 @@
 # Editor / tooling (not part of the website)
 .claude/
 
-# Optional: uncomment to keep heavy originals out of the repo
-# (the site only needs photos/web/. Keep them if you want a backup in git.)
-# photos/*.jpeg
-# photos/*.jpg
-# photos/*.JPG
-# photos/*.png
+# Heavy photo originals stay local as masters — the site only needs photos/web/.
+# (Removed from the repo + deploy on 2026-06-29; files remain on disk as backup.)
+photos/*.jpeg
+photos/*.jpg
+photos/*.JPG
+photos/*.png
