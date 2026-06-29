@@ -15,7 +15,8 @@ for f in *.jpeg *.jpg *.JPG *.png *.PNG; do
     echo "skip   $f (already optimised)"
     continue
   fi
-  sips -Z 2000 -s format jpeg -s formatOptions 72 "$f" --out "$out" >/dev/null 2>&1
+  # quality-first: longest side up to 2560px, JPEG quality 90 (crisp on retina)
+  sips -Z 2560 -s format jpeg -s formatOptions 90 "$f" --out "$out" >/dev/null 2>&1
   echo "made   $out"
 done
 
