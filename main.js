@@ -133,10 +133,15 @@
        · .air   → dust, surfaced only during section transitions
      ============================================================ */
   const coarse = matchMedia('(pointer: coarse)').matches;
+  const TAU = Math.PI * 2;
   const air = { opacity: 0, dark: 0 };   // driven by updateSections()
   let airCtl = null;                     // dust runner handle, so it can idle when invisible
-  const accentRGB = () => (getComputedStyle(document.documentElement)
-    .getPropertyValue('--accent-rgb').trim() || '122,132,112').split(',').map(Number);
+  // the time-of-day tint (initCover sets --ripple-rgb on :root). Read once and
+  // refreshed slowly, shared by the canvas layers — no getComputedStyle per frame.
+  const readAccent = () => (getComputedStyle(document.documentElement)
+    .getPropertyValue('--ripple-rgb').trim() || '122,132,112').split(',').map(Number);
+  let accent = readAccent();
+  setInterval(() => { accent = readAccent(); }, 30000);
 
   // a tiny canvas runner: HiDPI sizing, pauses off-screen and when the tab is hidden
   function mountCanvas(canvas, opts) {
@@ -185,8 +190,7 @@
     canvas.style.filter = `blur(${coarse ? 7 : 5}px)`;
     const GROUND = [232, 228, 217];
     let cols = 0, rows = 0, cur, prev, off, octx, img;
-    let nextRain = 1.5, acc = accentRGB();
-    setInterval(() => { acc = accentRGB(); }, 30000);
+    let nextRain = 1.5;
 
     const drop = (gx, gy, power) => { if (gx > 0 && gy > 0 && gx < cols - 1 && gy < rows - 1) prev[gy * cols + gx] += power; };
     coverWaterDrop = (clientX, clientY, power) => {
@@ -227,7 +231,7 @@
       draw(ctx, w, h, t) {
         if (t > nextRain) { drop((1 + Math.random() * (cols - 2)) | 0, (1 + Math.random() * (rows - 2)) | 0, 300); nextRain = t + 3.5 + Math.random() * 4.5; }
         step();
-        const d = img.data, ar = acc[0], ag = acc[1], ab = acc[2];
+        const d = img.data, ar = accent[0], ag = accent[1], ab = accent[2];
         for (let i = 0, n = cols * rows; i < n; i++) {
           const slope = ((prev[i - 1] || 0) - (prev[i + 1] || 0)) + ((prev[i - cols] || 0) - (prev[i + cols] || 0)) * 0.5;
           let kk = slope * 0.04; kk = kk < -1 ? -1 : kk > 1 ? 1 : kk;   // surface tilt → light
@@ -261,16 +265,16 @@
         const local = inhale ? p / 0.5 : 1 - (p - 0.5) / 0.5;
         const e = local < 0.5 ? 2 * local * local : 1 - Math.pow(-2 * local + 2, 2) / 2;
         const R = Math.min(w, h) * 0.10 + e * Math.min(w, h) * 0.24;
-        const [r, g, b] = accentRGB();
+        const [r, g, b] = accent;
         ctx.clearRect(0, 0, w, h);
         for (let k = 3; k >= 0; k--) {
           ctx.beginPath(); ctx.strokeStyle = `rgba(${r},${g},${b},${(0.08 + 0.09 * (3 - k)).toFixed(3)})`;
-          ctx.lineWidth = 1.1; ctx.arc(cx, cy, Math.max(1, R - k * 9), 0, 6.2832); ctx.stroke();
+          ctx.lineWidth = 1.1; ctx.arc(cx, cy, Math.max(1, R - k * 9), 0, TAU); ctx.stroke();
         }
         const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
         rad.addColorStop(0, `rgba(${r},${g},${b},${(0.14 + e * 0.10).toFixed(3)})`);
         rad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-        ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fill();
+        ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
         if (cueEl) { const want = inhale ? 'breathe in' : 'breathe out'; if (want !== last) { last = want; cueEl.textContent = want; } }
       }
     });
@@ -299,7 +303,7 @@
           if (m.x < -4) m.x = w + 4; else if (m.x > w + 4) m.x = -4;
           ctx.beginPath();
           ctx.fillStyle = `rgba(${cr},${cg},${cb},${((0.24 + m.z * 0.58) * aMul).toFixed(3)})`;
-          ctx.arc(m.x, m.y, m.z * 1.7 + 0.5, 0, 6.2832); ctx.fill();
+          ctx.arc(m.x, m.y, m.z * 1.7 + 0.5, 0, TAU); ctx.fill();
         }
       }
     });

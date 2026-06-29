@@ -12,6 +12,10 @@
   --sage:   #5B6649;   /* deepened so 11px labels clear WCAG AA on the cream ground */
   --amber:  #7A4623;
 
+  /* channel values for rgba() — the soft sage UI lines and the ecru on dark */
+  --sage-rgb: 122, 132, 112;
+  --ecru-rgb: 242, 238, 228;
+
   --serif: "Spectral", Georgia, "Times New Roman", serif;
   --sans:  "Hanken Grotesk", -apple-system, system-ui, sans-serif;
 
@@ -48,7 +52,7 @@ body {
   line-height: 1.72;
   letter-spacing: 0.002em;
 }
-::selection { background: rgba(122, 132, 112, 0.26); }
+::selection { background: rgba(var(--sage-rgb), 0.26); }
 .label { font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sage); }
 a { color: inherit; text-decoration: none; }
 
@@ -56,11 +60,11 @@ a { color: inherit; text-decoration: none; }
 :focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; border-radius: 2px; }
 /* a light ring where focus lands on the dark album / breath / lightbox */
 .album :focus-visible, .rest :focus-visible, .lightbox :focus-visible,
-.masthead.invert :focus-visible { outline-color: rgba(242, 238, 228, 0.9); }
+.masthead.invert :focus-visible { outline-color: rgba(var(--ecru-rgb), 0.9); }
 
 /* graceful fallback if content fails to load */
 .load-fallback { margin: auto; max-width: 30ch; text-align: center; font-style: italic; color: var(--muted); }
-.album .load-fallback { color: rgba(242, 238, 228, 0.72); }
+.album .load-fallback { color: rgba(var(--ecru-rgb), 0.72); }
 
 /* ---------- masthead ---------- */
 header.masthead {
@@ -77,7 +81,7 @@ nav.top a { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; t
 nav.top a:hover { color: var(--ink); }
 /* over the dark album section */
 .masthead.invert .wordmark { color: #F2EEE4; }
-.masthead.invert nav.top a { color: rgba(242, 238, 228, 0.62); }
+.masthead.invert nav.top a { color: rgba(var(--ecru-rgb), 0.62); }
 .masthead.invert nav.top a:hover { color: #F2EEE4; }
 
 section.screen { position: relative; z-index: 1; min-height: 100svh; will-change: opacity, transform; }
@@ -190,7 +194,7 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 
 /* ---------- the album (dark sky) ---------- */
 .album { position: relative; display: flex; flex-direction: column; background: linear-gradient(180deg, #1b2230 0%, #141a25 55%, #0f141d 100%); }
-.album .label { color: rgba(242, 238, 228, 0.66); }
+.album .label { color: rgba(var(--ecru-rgb), 0.66); }
 .album-head { position: absolute; top: clamp(72px, 11vh, 120px); left: var(--pad); z-index: 5; will-change: opacity, transform; }
 .track {
   flex: 1; min-height: 0;
@@ -212,16 +216,16 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 
 .album-foot { display: flex; align-items: center; justify-content: center; padding: clamp(20px, 4vh, 40px) var(--pad) clamp(28px, 5vh, 52px); }
 .album-meta { text-align: center; }
-.album-meta .count { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; color: rgba(242, 238, 228, 0.5); }
-.album-meta .cap { display: block; margin-top: 10px; max-width: 42ch; margin-inline: auto; font-style: italic; color: rgba(242, 238, 228, 0.82); transition: opacity 450ms var(--ease); }
+.album-meta .count { font-family: var(--sans); font-size: 11px; letter-spacing: 0.16em; color: rgba(var(--ecru-rgb), 0.5); }
+.album-meta .cap { display: block; margin-top: 10px; max-width: 42ch; margin-inline: auto; font-style: italic; color: rgba(var(--ecru-rgb), 0.82); transition: opacity 450ms var(--ease); }
 
 /* ---------- a held minute (breath) — between the album and the pages ---------- */
 .rest { display: flex; align-items: center; justify-content: center; overflow: hidden; background: #12151b; }
 .breath-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
 .rest-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
-.rest .label { color: rgba(242, 238, 228, 0.55); }
-.rest-now { font-family: var(--serif); font-weight: 300; font-size: clamp(2.4rem, 7vw, 4.4rem); line-height: 1; color: rgba(242, 238, 228, 0.92); }
-.rest-cue { font-family: var(--sans); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(242, 238, 228, 0.42); transition: opacity 900ms var(--ease); }
+.rest .label { color: rgba(var(--ecru-rgb), 0.55); }
+.rest-now { font-family: var(--serif); font-weight: 300; font-size: clamp(2.4rem, 7vw, 4.4rem); line-height: 1; color: rgba(var(--ecru-rgb), 0.92); }
+.rest-cue { font-family: var(--sans); font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(var(--ecru-rgb), 0.42); transition: opacity 900ms var(--ease); }
 
 /* ---------- the pages (book, turned by horizontal scroll) ---------- */
 /* content flows from the top, clear of the pinned heading, so the featured strip
@@ -232,7 +236,7 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .page {
   --page-pad: clamp(40px, 5vw, 80px);
   position: absolute; inset: 0;
-  background: var(--paper); border: 1px solid rgba(122, 132, 112, 0.28);
+  background: var(--paper); border: 1px solid rgba(var(--sage-rgb), 0.28);
   /* extra top room for the "Ahora — Field Notes" runhead, then content from the top */
   padding: clamp(58px, 7vw, 92px) var(--page-pad) clamp(40px, 5vw, 64px);
   display: flex; flex-direction: column; justify-content: flex-start;
@@ -261,16 +265,16 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 /* ---------- featured blogs (highlight strip above the book) ---------- */
 .featured { width: min(40rem, 88vw); margin-bottom: clamp(22px, 4vh, 40px); }
 .featured[hidden] { display: none; }
-.feat-label { display: block; margin-bottom: 14px; padding-bottom: 11px; border-bottom: 1px solid rgba(122, 132, 112, 0.34); }
+.feat-label { display: block; margin-bottom: 14px; padding-bottom: 11px; border-bottom: 1px solid rgba(var(--sage-rgb), 0.34); }
 .feat-row { display: flex; gap: clamp(12px, 1.5vw, 18px); }
 .feat-card {
   flex: 1 1 0; min-width: 0; text-align: left; cursor: pointer; font: inherit; color: inherit;
-  background: var(--paper); border: 1px solid rgba(122, 132, 112, 0.3);
+  background: var(--paper); border: 1px solid rgba(var(--sage-rgb), 0.3);
   padding: clamp(16px, 1.6vw, 22px);
   display: flex; flex-direction: column; gap: 9px;
   transition: border-color 600ms var(--ease), transform 600ms var(--ease);
 }
-.feat-card:hover { border-color: rgba(122, 132, 112, 0.7); transform: translateY(-2px); }
+.feat-card:hover { border-color: rgba(var(--sage-rgb), 0.7); transform: translateY(-2px); }
 .feat-card .label { margin: 0; }
 .feat-title { font-family: var(--serif); font-size: 1.04rem; line-height: 1.3; }
 .feat-lead {
@@ -289,7 +293,7 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .invite-links a:hover { color: var(--amber); border-color: var(--amber); }
 
 .colophon { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 var(--pad) 48px; font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--sage); }
-.colophon a { border-bottom: 1px solid rgba(122, 132, 112, 0.5); padding-bottom: 1px; transition: color 360ms ease, border-color 360ms ease; }
+.colophon a { border-bottom: 1px solid rgba(var(--sage-rgb), 0.5); padding-bottom: 1px; transition: color 360ms ease, border-color 360ms ease; }
 .colophon a:hover { color: var(--amber); border-color: var(--amber); }
 
 /* ============================================================
@@ -301,7 +305,7 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .arc-head .intro { max-width: var(--reading); margin: 28px 0 0; color: var(--muted); }
 
 .arc-section { margin-top: clamp(56px, 9vh, 104px); }
-.arc-section > .label { display: block; margin-bottom: clamp(20px, 3vh, 32px); padding-bottom: 12px; border-bottom: 1px solid rgba(122, 132, 112, 0.4); }
+.arc-section > .label { display: block; margin-bottom: clamp(20px, 3vh, 32px); padding-bottom: 12px; border-bottom: 1px solid rgba(var(--sage-rgb), 0.4); }
 
 /* photographs — compact grid */
 .arc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 20vw, 200px), 1fr)); gap: clamp(8px, 1.4vw, 16px); }
@@ -334,9 +338,9 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .lightbox.open { opacity: 1; pointer-events: auto; }
 .lb-figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 86vw; }
 .lb-figure img { max-width: 86vw; max-height: 78vh; object-fit: contain; display: block; }
-.lb-cap { font-family: var(--serif); font-style: italic; color: rgba(242, 238, 228, 0.85); text-align: center; max-width: 48ch; }
+.lb-cap { font-family: var(--serif); font-style: italic; color: rgba(var(--ecru-rgb), 0.85); text-align: center; max-width: 48ch; }
 .lb-close { position: absolute; top: clamp(16px, 3vh, 28px); right: clamp(16px, 3vw, 28px); }
-.lb-close, .lb-nav { background: none; border: 0; color: rgba(242, 238, 228, 0.7); cursor: pointer; font-family: var(--serif); transition: color 300ms ease; }
+.lb-close, .lb-nav { background: none; border: 0; color: rgba(var(--ecru-rgb), 0.7); cursor: pointer; font-family: var(--serif); transition: color 300ms ease; }
 .lb-close { font-size: 32px; line-height: 1; }
 .lb-nav { font-size: 40px; line-height: 1; padding: 12px; }
 .lb-close:hover, .lb-nav:hover { color: #fff; }

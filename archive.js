@@ -87,5 +87,9 @@
       renderPhotos(photos);
       renderNotes(notes);
     })
-    .catch((err) => { console.error('Could not load content.json —', err); });
+    .catch((err) => {
+      console.error('Could not load published.json —', err);
+      const msg = '<p class="arc-empty">The archive is resting just now — please try again in a moment.</p>';
+      photosEl.innerHTML = msg; notesEl.innerHTML = msg;
+    });
 })();
