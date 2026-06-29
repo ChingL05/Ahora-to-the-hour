@@ -16,6 +16,9 @@
 </head>
 <body>
 
+  <!-- connective air: dust drifting in the light, surfaced during section transitions -->
+  <canvas class="air" aria-hidden="true"></canvas>
+
   <header class="masthead">
     <a class="wordmark" href="#cover">Ahora<span class="dot">.</span></a>
     <nav class="top">
@@ -28,6 +31,7 @@
 
   <!-- TITLE PAGE -->
   <section class="screen cover" id="cover">
+    <canvas class="cover-water" aria-hidden="true"></canvas>
     <span class="label">A quiet place to be</span>
     <div class="word-wrap">
       <div class="bg-ripple"></div>
@@ -55,6 +59,15 @@
         <span class="count" id="count">01 / 01</span>
         <em class="cap" id="cap"></em>
       </div>
+    </div>
+  </section>
+
+  <!-- A HELD MINUTE — breathe, between looking and reading -->
+  <section class="screen rest" id="rest">
+    <canvas class="breath-canvas" aria-hidden="true"></canvas>
+    <div class="rest-inner">
+      <span class="rest-now">now</span>
+      <span class="rest-cue" id="restCue">breathe in</span>
     </div>
   </section>
 

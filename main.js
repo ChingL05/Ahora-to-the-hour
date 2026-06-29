@@ -77,6 +77,14 @@
 
     const bgRipple = () => { if (bg) { bg.classList.remove('go'); void bg.offsetWidth; bg.classList.add('go'); } };
     const revealText = () => { cover.classList.add('revealed'); if (body) body.classList.add('in'); };
+    // the letters fall onto the still-water surface — splash where the "A" lands
+    const splash = (power) => {
+      if (!coverWaterDrop) return;
+      const a = word.querySelector('.ltr');
+      if (!a) return;
+      const r = a.getBoundingClientRect();
+      coverWaterDrop(r.left + r.width / 2, r.top + r.height * 0.6, power);
+    };
 
     let timers = [];
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -86,7 +94,9 @@
       word.classList.remove('settled', 'stir', 'play'); void word.offsetWidth;
       cover.classList.remove('revealed'); if (body) body.classList.remove('in');
       word.classList.add('play');
+      timers.push(setTimeout(() => splash(750), (A_DELAY + 0.5) * 1000));   // A's raindrop
       timers.push(setTimeout(bgRipple, (lastLand - 0.15) * 1000));
+      timers.push(setTimeout(() => splash(450), (lastLand - 0.1) * 1000));   // h-o-r-a settle
       timers.push(setTimeout(revealText, (lastLand - 0.1) * 1000));
       sessionStorage.setItem(KEY, '1');
     }
@@ -101,6 +111,7 @@
       revealText();
       word.classList.remove('stir'); void word.offsetWidth; word.classList.add('stir');
       bgRipple();
+      splash(650);   // the A re-drops onto the surface
     }
 
     new IntersectionObserver((es) => {
@@ -112,7 +123,179 @@
       });
     }, { threshold: 0.55 }).observe(cover);
   }
+  let coverWaterDrop = null;   // initCoverWater publishes this so the cover word can splash
   initCover();
+
+  /* ============================================================
+     CREATIVE-CODING LAYERS — quiet, time-aware, touch-friendly
+       · cover  → still water (the letters fall onto it)
+       · rest   → breath (a held minute, between album and pages)
+       · .air   → dust, surfaced only during section transitions
+     ============================================================ */
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const air = { opacity: 0, dark: 0 };   // driven by updateSections()
+  const accentRGB = () => (getComputedStyle(document.documentElement)
+    .getPropertyValue('--accent-rgb').trim() || '122,132,112').split(',').map(Number);
+
+  // a tiny canvas runner: HiDPI sizing, pauses off-screen and when the tab is hidden
+  function mountCanvas(canvas, opts) {
+    const ctx = canvas.getContext('2d');
+    const dpr = opts.dpr || Math.min(2, devicePixelRatio || 1);
+    let w = 0, h = 0, raf = 0, vis = !document.hidden, onScreen = !!opts.fixed, t0 = performance.now();
+    function size() {
+      const r = canvas.getBoundingClientRect();
+      w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (opts.onsize) opts.onsize(w, h, ctx);
+    }
+    const ok = () => vis && onScreen && !reduce;
+    function frame(now) { raf = ok() ? requestAnimationFrame(frame) : 0; opts.draw(ctx, w, h, (now - t0) / 1000, now); }
+    function play() { if (!raf && ok()) { t0 = performance.now() - 16; raf = requestAnimationFrame(frame); } }
+    function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+    document.addEventListener('visibilitychange', () => { vis = !document.hidden; vis ? play() : stop(); });
+    addEventListener('resize', size);
+    size();
+    if (reduce) opts.draw(ctx, w, h, 0, performance.now());   // hold one still frame
+    else if (opts.fixed) play();
+    else new IntersectionObserver((es) => es.forEach((e) => { onScreen = e.isIntersecting; onScreen ? play() : stop(); }), { threshold: 0.02 }).observe(canvas);
+  }
+
+  /* ---------- 01 · STILL WATER (cover) ----------
+     Ripple sim runs on a coarse grid; the shading is painted to a tiny
+     cols×rows buffer and upscaled — so a finger-drag touches a few thousand
+     cells, never millions of pixels. Rendered on the warm ground so the
+     word stays readable. */
+  function initCoverWater() {
+    const cover = document.querySelector('.cover');
+    const canvas = cover && cover.querySelector('.cover-water');
+    if (!canvas) return;
+    const scale = coarse ? 6 : 5;          // grid cell size; the sim only ever works on cols×rows cells
+    // a GPU CSS blur on the element dissolves the upscaled grid into water — reliable
+    // across browsers (unlike canvas ctx.filter, which mobile Safari often drops)
+    canvas.style.filter = `blur(${coarse ? 7 : 5}px)`;
+    const GROUND = [232, 228, 217];
+    let cols = 0, rows = 0, cur, prev, off, octx, img;
+    let nextRain = 1.5, acc = accentRGB();
+    setInterval(() => { acc = accentRGB(); }, 30000);
+
+    const drop = (gx, gy, power) => { if (gx > 0 && gy > 0 && gx < cols - 1 && gy < rows - 1) prev[gy * cols + gx] += power; };
+    coverWaterDrop = (clientX, clientY, power) => {
+      const r = canvas.getBoundingClientRect();
+      drop(((clientX - r.left) / scale) | 0, ((clientY - r.top) / scale) | 0, power || 700);
+    };
+
+    // listen on the cover, not the canvas, so ripples span the whole field and
+    // touch scrolling is never blocked (passive — we never preventDefault)
+    const m = { x: 0, y: 0, px: 0, py: 0, on: false };
+    const move = (cx, cy) => {
+      const r = canvas.getBoundingClientRect();
+      m.x = cx - r.left; m.y = cy - r.top;
+      if (m.on) { const d = Math.hypot(m.x - m.px, m.y - m.py); if (d > 2) drop((m.x / scale) | 0, (m.y / scale) | 0, Math.min(150, d * 6)); }
+      m.px = m.x; m.py = m.y; m.on = true;
+    };
+    cover.addEventListener('pointermove', (e) => move(e.clientX, e.clientY), { passive: true });
+    cover.addEventListener('pointerdown', (e) => coverWaterDrop(e.clientX, e.clientY, 750), { passive: true });
+    cover.addEventListener('pointerleave', () => { m.on = false; });
+
+    function step() {
+      for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) {
+        const i = y * cols + x;
+        cur[i] = ((prev[i - 1] + prev[i + 1] + prev[i - cols] + prev[i + cols]) / 2 - cur[i]) * 0.965;
+      }
+      const t = prev; prev = cur; cur = t;
+    }
+
+    mountCanvas(canvas, {
+      dpr: Math.min(1.75, devicePixelRatio || 1),   // enough target resolution for the blur to read as water
+      onsize(w, h) {
+        cols = Math.ceil(w / scale) + 2; rows = Math.ceil(h / scale) + 2;
+        cur = new Float32Array(cols * rows); prev = new Float32Array(cols * rows);
+        off = document.createElement('canvas'); off.width = cols; off.height = rows;
+        octx = off.getContext('2d'); img = octx.createImageData(cols, rows);
+      },
+      draw(ctx, w, h, t) {
+        if (t > nextRain) { drop((1 + Math.random() * (cols - 2)) | 0, (1 + Math.random() * (rows - 2)) | 0, 300); nextRain = t + 3.5 + Math.random() * 4.5; }
+        step();
+        const d = img.data, ar = acc[0], ag = acc[1], ab = acc[2];
+        for (let i = 0, n = cols * rows; i < n; i++) {
+          const slope = ((prev[i - 1] || 0) - (prev[i + 1] || 0)) + ((prev[i - cols] || 0) - (prev[i + cols] || 0)) * 0.5;
+          let kk = slope * 0.04; kk = kk < -1 ? -1 : kk > 1 ? 1 : kk;   // surface tilt → light
+          const o = i * 4;
+          // crests lift toward warm light; troughs deepen and pick up the sage tint
+          d[o]     = GROUND[0] + kk * (kk > 0 ? 18 : 30) + (kk < 0 ? (ar - GROUND[0]) * -kk * 0.22 : 0);
+          d[o + 1] = GROUND[1] + kk * (kk > 0 ? 17 : 28) + (kk < 0 ? (ag - GROUND[1]) * -kk * 0.22 : 0);
+          d[o + 2] = GROUND[2] + kk * (kk > 0 ? 14 : 22) + (kk < 0 ? (ab - GROUND[2]) * -kk * 0.22 : 0);
+          d[o + 3] = 255;
+        }
+        octx.putImageData(img, 0, 0);
+        // upscale the coarse grid; the CSS blur on the element removes the facets
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(off, 0, 0, cols, rows, 0, 0, w, h);
+      }
+    });
+  }
+
+  /* ---------- 04 · BREATH (the held minute) ---------- */
+  function initBreath() {
+    const canvas = document.querySelector('.breath-canvas');
+    if (!canvas) return;
+    const cueEl = document.getElementById('restCue');
+    const PERIOD = 11;   // seconds per full breath ≈ 5.5 / min
+    let last = '';
+    mountCanvas(canvas, {
+      draw(ctx, w, h, t) {
+        const cx = w / 2, cy = h / 2;
+        const p = (t % PERIOD) / PERIOD, inhale = p < 0.5;
+        const local = inhale ? p / 0.5 : 1 - (p - 0.5) / 0.5;
+        const e = local < 0.5 ? 2 * local * local : 1 - Math.pow(-2 * local + 2, 2) / 2;
+        const R = Math.min(w, h) * 0.10 + e * Math.min(w, h) * 0.24;
+        const [r, g, b] = accentRGB();
+        ctx.clearRect(0, 0, w, h);
+        for (let k = 3; k >= 0; k--) {
+          ctx.beginPath(); ctx.strokeStyle = `rgba(${r},${g},${b},${(0.08 + 0.09 * (3 - k)).toFixed(3)})`;
+          ctx.lineWidth = 1.1; ctx.arc(cx, cy, Math.max(1, R - k * 9), 0, 6.2832); ctx.stroke();
+        }
+        const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+        rad.addColorStop(0, `rgba(${r},${g},${b},${(0.14 + e * 0.10).toFixed(3)})`);
+        rad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fill();
+        if (cueEl) { const want = inhale ? 'breathe in' : 'breathe out'; if (want !== last) { last = want; cueEl.textContent = want; } }
+      }
+    });
+  }
+
+  /* ---------- 03 · DUST (connective air) ---------- */
+  function initAir() {
+    const canvas = document.querySelector('.air');
+    if (!canvas) return;
+    let motes = [], w = 0, h = 0;
+    const spawn = () => ({ x: Math.random() * w, y: Math.random() * h, z: 0.3 + Math.random() * 0.7, vx: (Math.random() - 0.5) * 0.1, vy: -0.04 - Math.random() * 0.1, ph: Math.random() * 6.28 });
+    mountCanvas(canvas, {
+      fixed: true,
+      dpr: coarse ? 1 : Math.min(1.5, devicePixelRatio || 1),
+      onsize(cw, ch) { w = cw; h = ch; const n = Math.min(coarse ? 70 : 150, Math.round(cw * ch / 12000)); motes = Array.from({ length: n }, spawn); },
+      draw(ctx, cw, ch) {
+        ctx.clearRect(0, 0, cw, ch);
+        if (air.opacity < 0.01) return;                  // settled on a light page — nothing to draw
+        const dark = air.dark;                           // 1 over the album, 0 over the light pages
+        const cr = (232 + (96 - 232) * (1 - dark)) | 0, cg = (228 + (94 - 228) * (1 - dark)) | 0, cb = (204 + (84 - 204) * (1 - dark)) | 0;
+        const aMul = 0.55 + dark * 0.45;                 // brighter over the dark album
+        for (const m of motes) {
+          m.ph += 0.01; m.x += m.vx + Math.sin(m.ph) * 0.06 * m.z; m.y += m.vy;
+          if (m.y < -4) { Object.assign(m, spawn()); m.y = h + 4; }
+          if (m.x < -4) m.x = w + 4; else if (m.x > w + 4) m.x = -4;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(${cr},${cg},${cb},${((0.24 + m.z * 0.58) * aMul).toFixed(3)})`;
+          ctx.arc(m.x, m.y, m.z * 1.7 + 0.5, 0, 6.2832); ctx.fill();
+        }
+      }
+    });
+  }
+
+  initCoverWater();
+  initBreath();
+  initAir();
 
   /* ---------- which big section the arrow keys belong to ---------- */
   let active = 'album';
@@ -124,22 +307,50 @@
   /* ---------- Izanami-style vertical cross-fade of whole sections + header ---------- */
   const masthead = document.querySelector('.masthead');
   const albumEl = document.getElementById('album');
+  const restEl = document.getElementById('rest');
+  const dustLayer = document.querySelector('.air');
   const screens = [...document.querySelectorAll('section.screen')];
+  // each section's signature colour — the page background blends between these as
+  // you scroll, so whatever shows through the cross-fade always matches (no frames)
+  const SECTION_BG = { cover: [232, 228, 217], album: [20, 26, 37], rest: [18, 21, 27], reader: [232, 228, 217], invite: [232, 228, 217] };
   function updateSections() {
     const vh = innerHeight;
-    let topOp = 0, albumOp = 0;
-    screens.forEach((s) => {
+    // read pass: gather all layout reads together so touch scrolling never thrashes
+    const data = screens.map((s) => {
       const r = s.getBoundingClientRect();
       const dc = ((r.top + r.height / 2) - vh / 2) / vh;
-      const op = clamp(0, 1, 1 - Math.abs(dc) / 0.72);
+      return { s, dc, op: clamp(0, 1, 1 - Math.abs(dc) / 0.72) };
+    });
+    // write pass
+    let topOp = 0, albumOp = 0, restOp = 0, wr = 0, wg = 0, wb = 0, ws = 0;
+    data.forEach(({ s, dc, op }) => {
       s.style.opacity = op.toFixed(3);
       if (!reduce) s.style.transform = `translateY(${(dc * 30).toFixed(1)}px)`;
       topOp = Math.max(topOp, op);
       if (s === albumEl) albumOp = op;
+      if (s === restEl) restOp = op;
+      const c = SECTION_BG[s.id] || SECTION_BG.cover;
+      const wgt = op * op + 0.001;             // the centred section dominates the blend
+      wr += c[0] * wgt; wg += c[1] * wgt; wb += c[2] * wgt; ws += wgt;
     });
+    if (ws > 0) document.body.style.backgroundColor = `rgb(${(wr / ws) | 0},${(wg / ws) | 0},${(wb / ws) | 0})`;
     masthead.style.opacity = (0.2 + 0.8 * topOp).toFixed(3);
-    masthead.classList.toggle('invert', albumOp > 0.5);
+    masthead.classList.toggle('invert', Math.max(albumOp, restOp) > 0.5);
+    // dust: the connective air. Most present mid-transition (topOp low), gone
+    // when settled on a section, and suppressed around the breath — so the
+    // album→pages gap reads as the held minute, never as dust.
+    if (dustLayer) {
+      const between = clamp(0, 1, 1 - topOp);
+      // steady over the dark album, rising through transitions, gone over the breath
+      const vis = Math.max(between, albumOp * 0.55) * (1 - clamp(0, 1, restOp));
+      dustLayer.style.opacity = vis.toFixed(3);
+      air.opacity = vis;
+      air.dark = clamp(0, 1, albumOp);
+    }
   }
+  // coalesce many scroll events into a single update per frame (smoother on touch)
+  let secRaf = 0;
+  const scheduleSections = () => { if (!secRaf) secRaf = requestAnimationFrame(() => { secRaf = 0; updateSections(); }); };
 
   /* ============================================================
      BUILD CONTENT, then wire up the album & the pages
@@ -376,7 +587,7 @@
     .catch((err) => { console.error('Could not load content.json —', err); });
 
   /* ---------- drive the vertical section cross-fade ---------- */
-  if (lenis) lenis.on('scroll', updateSections);
-  addEventListener('scroll', updateSections, { passive: true });
+  if (lenis) lenis.on('scroll', scheduleSections);
+  addEventListener('scroll', scheduleSections, { passive: true });
   updateSections();
 })();
