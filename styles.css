@@ -9,7 +9,7 @@
   --paper:  #F3F0E8;   /* book page */
   --ink:    #1B1B1B;
   --muted:  #5D5B54;
-  --sage:   #7A8470;
+  --sage:   #5B6649;   /* deepened so 11px labels clear WCAG AA on the cream ground */
   --amber:  #7A4623;
 
   --serif: "Spectral", Georgia, "Times New Roman", serif;
@@ -51,6 +51,16 @@ body {
 ::selection { background: rgba(122, 132, 112, 0.26); }
 .label { font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sage); }
 a { color: inherit; text-decoration: none; }
+
+/* visible keyboard focus (mouse clicks stay clean via :focus-visible) */
+:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; border-radius: 2px; }
+/* a light ring where focus lands on the dark album / breath / lightbox */
+.album :focus-visible, .rest :focus-visible, .lightbox :focus-visible,
+.masthead.invert :focus-visible { outline-color: rgba(242, 238, 228, 0.9); }
+
+/* graceful fallback if content fails to load */
+.load-fallback { margin: auto; max-width: 30ch; text-align: center; font-style: italic; color: var(--muted); }
+.album .load-fallback { color: rgba(242, 238, 228, 0.72); }
 
 /* ---------- masthead ---------- */
 header.masthead {

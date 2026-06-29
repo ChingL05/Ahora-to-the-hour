@@ -134,6 +134,7 @@
      ============================================================ */
   const coarse = matchMedia('(pointer: coarse)').matches;
   const air = { opacity: 0, dark: 0 };   // driven by updateSections()
+  let airCtl = null;                     // dust runner handle, so it can idle when invisible
   const accentRGB = () => (getComputedStyle(document.documentElement)
     .getPropertyValue('--accent-rgb').trim() || '122,132,112').split(',').map(Number);
 
@@ -141,7 +142,8 @@
   function mountCanvas(canvas, opts) {
     const ctx = canvas.getContext('2d');
     const dpr = opts.dpr || Math.min(2, devicePixelRatio || 1);
-    let w = 0, h = 0, raf = 0, vis = !document.hidden, onScreen = !!opts.fixed, t0 = performance.now();
+    const interval = opts.fps ? 1000 / opts.fps : 0;   // cap frame rate to spare battery
+    let w = 0, h = 0, raf = 0, vis = !document.hidden, onScreen = !!opts.fixed, wanted = true, last = 0, t0 = performance.now();
     function size() {
       const r = canvas.getBoundingClientRect();
       w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
@@ -149,9 +151,14 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (opts.onsize) opts.onsize(w, h, ctx);
     }
-    const ok = () => vis && onScreen && !reduce;
-    function frame(now) { raf = ok() ? requestAnimationFrame(frame) : 0; opts.draw(ctx, w, h, (now - t0) / 1000, now); }
-    function play() { if (!raf && ok()) { t0 = performance.now() - 16; raf = requestAnimationFrame(frame); } }
+    const ok = () => vis && onScreen && wanted && !reduce;
+    function frame(now) {
+      raf = ok() ? requestAnimationFrame(frame) : 0;
+      if (interval && now - last < interval - 1) return;
+      last = now;
+      opts.draw(ctx, w, h, (now - t0) / 1000, now);
+    }
+    function play() { if (!raf && ok()) { t0 = performance.now() - 16; last = 0; raf = requestAnimationFrame(frame); } }
     function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
     document.addEventListener('visibilitychange', () => { vis = !document.hidden; vis ? play() : stop(); });
     addEventListener('resize', size);
@@ -159,6 +166,8 @@
     if (reduce) opts.draw(ctx, w, h, 0, performance.now());   // hold one still frame
     else if (opts.fixed) play();
     else new IntersectionObserver((es) => es.forEach((e) => { onScreen = e.isIntersecting; onScreen ? play() : stop(); }), { threshold: 0.02 }).observe(canvas);
+    // setWanted lets callers idle a layer entirely (e.g. dust when it's invisible)
+    return { play, stop, size, setWanted(b) { if (b === wanted) return; wanted = b; b ? play() : stop(); } };
   }
 
   /* ---------- 01 · STILL WATER (cover) ----------
@@ -208,6 +217,7 @@
 
     mountCanvas(canvas, {
       dpr: Math.min(1.75, devicePixelRatio || 1),   // enough target resolution for the blur to read as water
+      fps: coarse ? 30 : 0,                          // half rate on phones — calm water, less battery
       onsize(w, h) {
         cols = Math.ceil(w / scale) + 2; rows = Math.ceil(h / scale) + 2;
         cur = new Float32Array(cols * rows); prev = new Float32Array(cols * rows);
@@ -244,6 +254,7 @@
     const PERIOD = 11;   // seconds per full breath ≈ 5.5 / min
     let last = '';
     mountCanvas(canvas, {
+      fps: coarse ? 30 : 0,
       draw(ctx, w, h, t) {
         const cx = w / 2, cy = h / 2;
         const p = (t % PERIOD) / PERIOD, inhale = p < 0.5;
@@ -271,8 +282,9 @@
     if (!canvas) return;
     let motes = [], w = 0, h = 0;
     const spawn = () => ({ x: Math.random() * w, y: Math.random() * h, z: 0.3 + Math.random() * 0.7, vx: (Math.random() - 0.5) * 0.1, vy: -0.04 - Math.random() * 0.1, ph: Math.random() * 6.28 });
-    mountCanvas(canvas, {
+    airCtl = mountCanvas(canvas, {
       fixed: true,
+      fps: coarse ? 30 : 0,
       dpr: coarse ? 1 : Math.min(1.5, devicePixelRatio || 1),
       onsize(cw, ch) { w = cw; h = ch; const n = Math.min(coarse ? 70 : 150, Math.round(cw * ch / 12000)); motes = Array.from({ length: n }, spawn); },
       draw(ctx, cw, ch) {
@@ -346,6 +358,7 @@
       dustLayer.style.opacity = vis.toFixed(3);
       air.opacity = vis;
       air.dark = clamp(0, 1, albumOp);
+      if (airCtl) airCtl.setWanted(vis > 0.01);   // stop the loop entirely when settled on a page
     }
   }
   // coalesce many scroll events into a single update per frame (smoother on touch)
@@ -361,9 +374,10 @@
   const featuredEl = document.getElementById('featured');
 
   function renderAlbum(album) {
-    track.innerHTML = (album || []).map((p) =>
+    track.innerHTML = (album || []).map((p, i) =>
       `<div class="plate"><div class="figure-reveal"><div class="shot" data-cap="${esc(p.caption)}">` +
-      `<img src="${esc(p.image)}" alt="${esc(p.alt)}" decoding="async"></div></div></div>`
+      // first two load eagerly (visible + neighbour peek); the rest defer until leafed to
+      `<img src="${esc(p.image)}" alt="${esc(p.alt)}" decoding="async" loading="${i < 2 ? 'eager' : 'lazy'}"></div></div></div>`
     ).join('');
   }
 
@@ -584,7 +598,11 @@
       initReader();
       updateSections();
     })
-    .catch((err) => { console.error('Could not load content.json —', err); });
+    .catch((err) => {
+      console.error('Could not load published.json —', err);
+      if (track) track.innerHTML = '<div class="plate"><p class="load-fallback">The album is resting just now — please try again in a moment.</p></div>';
+      if (book) book.innerHTML = '<article class="page current"><div class="stagger in"><p class="load-fallback">The pages are resting just now — please try again in a moment.</p></div></article>';
+    });
 
   /* ---------- drive the vertical section cross-fade ---------- */
   if (lenis) lenis.on('scroll', scheduleSections);

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ahora">
+  <rect width="32" height="32" rx="7" fill="#EFEBE0"/>
+  <text x="15.2" y="24.2" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="400" font-size="25" fill="#7A4623">A</text>
+  <circle cx="25" cy="22.4" r="2.5" fill="#7A4623"/>
+</svg>
