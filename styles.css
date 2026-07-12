@@ -21,7 +21,9 @@
 
   --reading: 32rem;
   --pad: clamp(24px, 6vw, 120px);
-  --shot-h: clamp(300px, 64svh, 720px);
+  /* photo height tracks viewport height, but always leaves room for the title band
+     above and the meta below — so a short / non-fullscreen window never overlaps */
+  --shot-h: clamp(200px, calc(100svh - 250px), 720px);
   --slide-w: 80vw;   /* uniform slide width → consistent neighbour peek on any screen */
   --slide-gap: 8vw;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -32,8 +34,6 @@
   --gap-hora: 0s;        /* 0 = h-o-r-a land together as one breath */
   --letter-rise: 0.62s;  /* how quickly A materialises */
   --rise-hora: 1.3s;     /* how slowly h-o-r-a bloom in */
-  --ripple-A: 3.3s;      /* A's single slow raindrop ripple */
-  --ripple-ease: cubic-bezier(0.11, 0.62, 0.2, 1);
   --ripple-rgb: 122, 132, 112;   /* set live by hour in main.js */
   --accent: var(--sage);         /* set live by hour in main.js */
 }
@@ -148,29 +148,11 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .ltr:nth-child(4) { --base: calc(var(--A-delay) + var(--gap-Ah) + var(--gap-hora) * 2); }
 .ltr:nth-child(5) { --base: calc(var(--A-delay) + var(--gap-Ah) + var(--gap-hora) * 3); }
 
-/* the raindrop — only A disturbs the water: a thin leading ring and a second
-   ring chasing it, expanding slowly and fading into the page's colour */
-.ltr:first-child::before, .ltr:first-child::after {
-  content: ""; position: absolute; left: 50%; top: 58%;
-  width: 1.5em; height: 1.5em; margin: -0.75em 0 0 -0.75em; border-radius: 50%;
-  z-index: 1; pointer-events: none; opacity: 0;
-  background: radial-gradient(circle at center,
-    rgba(var(--ripple-rgb), 0) 0, rgba(var(--ripple-rgb), 0) 0.435em,
-    rgba(var(--ripple-rgb), .22) 0.455em, rgba(var(--ripple-rgb), 0) 0.475em);
-}
-.word.play .ltr:first-child::before { animation: rainring var(--ripple-A) var(--ripple-ease) var(--base) forwards; }
-.word.play .ltr:first-child::after  { animation: rainring var(--ripple-A) var(--ripple-ease) calc(var(--base) + 0.26s) forwards; }
+/* the raindrop — only A disturbs the water; the ripple itself is the canvas water
+   splash (main.js), so the A needs no CSS ring of its own */
 /* return: A re-drops on its own, as if a fresh drop landed on the first letter */
 .word.stir .ltr:first-child > span  { animation: letterBloom var(--letter-rise) var(--ease) 0.05s both; }
-.word.stir .ltr:first-child::before { animation: rainring var(--ripple-A) var(--ripple-ease) 0.05s forwards; }
-.word.stir .ltr:first-child::after  { animation: rainring var(--ripple-A) var(--ripple-ease) 0.31s forwards; }
 
-@keyframes rainring {
-  0%   { opacity: 0;   transform: scale(0.12); filter: blur(0.2px); }
-  10%  { opacity: .4; }
-  72%  { opacity: .13; }
-  100% { opacity: 0;   transform: scale(3.1);  filter: blur(1.4px); }
-}
 @keyframes letterBloom {
   0%   { transform: scale(0.28); opacity: 0; filter: blur(8px); }
   100% { transform: none; opacity: 1; filter: blur(0); }
@@ -185,7 +167,7 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
     rgba(var(--ripple-rgb), 0) 0, rgba(var(--ripple-rgb), 0) 46.5%,
     rgba(var(--ripple-rgb), .08) 49%, rgba(var(--ripple-rgb), 0) 51.5%);
 }
-.bg-ripple.go { animation: bgripple 6.4s cubic-bezier(0.16, 0.65, 0.22, 1) forwards; }
+.bg-ripple.go { animation: bgripple 9s cubic-bezier(0.22, 0.55, 0.3, 1) forwards; }
 @keyframes bgripple {
   0%   { opacity: 0;   transform: scale(0.10); filter: blur(1px); }
   22%  { opacity: .22; }
@@ -201,7 +183,9 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
   display: flex; align-items: center; gap: var(--slide-gap);
   overflow-x: auto; overflow-y: hidden;
   scroll-snap-type: none;
-  padding-inline: calc((100vw - var(--slide-w)) / 2); padding-block: 0;
+  padding-inline: calc((100vw - var(--slide-w)) / 2);
+  /* top clears the absolute title band so the centred photo sits below it; small floor below */
+  padding-block: clamp(84px, 14svh, 132px) clamp(10px, 2svh, 24px);
   scrollbar-width: none; -ms-overflow-style: none; cursor: grab;
   /* allow vertical swipes to scroll the page from anywhere on the photos,
      while horizontal swipes still leaf the album */
@@ -283,6 +267,104 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 }
 .feat-cue { margin-top: auto; font-family: var(--sans); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage); }
 
+/* ---------- expand-to-read: the cue on each page, and the floating reader ---------- */
+/* a quiet cue so readers know a page opens; a swipe still turns, a tap opens */
+.page .open-cue {
+  flex: 0 0 auto; margin-top: clamp(14px, 2vh, 22px);
+  font-family: var(--sans); font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--sage);
+  display: inline-flex; align-items: center; gap: 8px;
+  opacity: 0.7; transition: opacity 500ms var(--ease), gap 500ms var(--ease);
+  pointer-events: none;
+}
+.page.current:hover .open-cue { opacity: 1; gap: 12px; }
+.book { cursor: zoom-in; }
+
+/* the expanded reader — a paper panel floating over a soft scrim */
+.post-modal {
+  position: fixed; inset: 0; z-index: 70;
+  display: flex; align-items: center; justify-content: center;
+  padding: clamp(20px, 5vh, 56px) clamp(16px, 5vw, 56px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 420ms var(--ease);
+}
+.post-modal.open { opacity: 1; pointer-events: auto; }
+
+.post-scrim {
+  position: absolute; inset: 0;
+  background: rgba(18, 20, 26, 0.52);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+
+.post-panel {
+  position: relative;
+  width: min(46rem, 100%);
+  max-height: min(84svh, 760px);
+  background: var(--paper);
+  border: 1px solid rgba(var(--sage-rgb), 0.34);
+  box-shadow: 0 30px 80px -30px rgba(18, 20, 26, 0.5);
+  display: flex; flex-direction: column;
+  transform: translateY(14px) scale(0.985);
+  transition: transform 520ms var(--ease);
+}
+.post-modal.open .post-panel { transform: none; }
+
+.post-close {
+  position: absolute; top: clamp(12px, 1.6vw, 20px); right: clamp(12px, 1.6vw, 20px);
+  z-index: 2; width: 40px; height: 40px;
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--serif); font-size: 30px; line-height: 1;
+  color: var(--sage);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 300ms ease, transform 300ms ease;
+}
+.post-close:hover { color: var(--amber); transform: rotate(90deg); }
+
+/* the scrolling reading column inside the panel */
+.post-scroll {
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: clamp(48px, 6vw, 76px) clamp(32px, 5vw, 72px) clamp(40px, 5vw, 60px);
+  scrollbar-width: thin; scrollbar-color: rgba(var(--sage-rgb), 0.5) transparent;
+}
+.post-scroll::-webkit-scrollbar { width: 8px; }
+.post-scroll::-webkit-scrollbar-thumb { background: rgba(var(--sage-rgb), 0.4); border-radius: 8px; }
+
+.post-scroll .runhead {
+  font-family: var(--sans); font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--sage); display: block; margin-bottom: 22px;
+}
+.post-scroll .label { display: block; margin-bottom: 18px; }
+.post-scroll h2 {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(1.5rem, 2.4vw + 0.8rem, 2.4rem); line-height: 1.22;
+  margin: 0 0 26px; max-width: 22ch;
+}
+.post-scroll p { margin: 0 0 20px; max-width: 42ch; line-height: 1.72; text-wrap: pretty; }
+.post-scroll p:last-child { margin-bottom: 0; }
+.post-scroll .aside { font-style: italic; color: var(--muted); }
+
+/* tablet — a touch narrower reading column, roomier panel */
+@media (max-width: 920px) {
+  .post-panel { width: min(42rem, 100%); max-height: min(86svh, 720px); }
+}
+/* phone — panel nearly fills the width, text reflows full-width */
+@media (max-width: 600px) {
+  .post-modal { padding: clamp(14px, 3vh, 28px) clamp(12px, 4vw, 24px); }
+  .post-panel { width: 100%; max-height: 90svh; }
+  .post-scroll { padding: clamp(44px, 12vw, 60px) clamp(24px, 7vw, 40px) clamp(32px, 8vw, 44px); }
+  .post-scroll p { max-width: none; }
+  .post-close { width: 44px; height: 44px; }   /* comfortable tap target */
+}
+/* short / landscape viewports — keep the header + close clear, trim vertical air */
+@media (max-height: 560px) {
+  .post-modal { padding: 12px clamp(16px, 5vw, 56px); }
+  .post-panel { max-height: 94svh; }
+  .post-scroll { padding-top: clamp(40px, 8vh, 56px); padding-bottom: clamp(24px, 5vh, 40px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .post-modal, .post-panel, .post-close { transition: none; }
+}
+
 /* ---------- invitation ---------- */
 .invite { display: flex; flex-direction: column; justify-content: center; padding: clamp(80px, 12vh, 140px) var(--pad); }
 .invite .label { display: block; margin-bottom: 30px; }
@@ -299,7 +381,10 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 /* ============================================================
    ARCHIVE PAGE
    ============================================================ */
-.archive { max-width: 72rem; margin: 0 auto; padding: clamp(110px, 16vh, 180px) var(--pad) clamp(64px, 10vh, 120px); }
+/* the standing dust background — a fixed sheet behind the page, above the ground.
+   archive.js drives the motes; pointer-events:none so it never blocks scroll/links. */
+.arc-dust { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.archive { position: relative; z-index: 1; max-width: 72rem; margin: 0 auto; padding: clamp(110px, 16vh, 180px) var(--pad) clamp(64px, 10vh, 120px); }
 .arc-head .label { display: block; margin-bottom: 24px; }
 .arc-head h1 { font-family: var(--serif); font-weight: 300; font-size: clamp(2.2rem, 5vw + 1rem, 4rem); line-height: 1.12; letter-spacing: -0.015em; margin: 0; max-width: 16ch; }
 .arc-head .intro { max-width: var(--reading); margin: 28px 0 0; color: var(--muted); }

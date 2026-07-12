@@ -29,9 +29,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=expand1" />
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
-  <script defer src="main.js"></script>
+  <script defer src="main.js?v=expand1"></script>
 </head>
 <body>
 
@@ -92,7 +92,7 @@
 
   <!-- THE PAGES -->
   <section class="screen reader" id="reader">
-    <span class="label">The Blogs — scroll sideways to turn</span>
+    <span class="label">The Blogs — scroll sideways to turn · click to read in full</span>
     <div class="featured" id="featured" hidden><!-- featured notes injected from content.json by main.js --></div>
     <div class="book" id="book"><!-- notes injected from content.json by main.js --></div>
     <div class="reader-foot"><span class="leaf" id="leaf">1 — 1</span></div>
@@ -110,6 +110,20 @@
       </div>
     </div>
   </section>
+
+  <!-- THE EXPANDED READER — a blog opens here when a page or featured card is clicked -->
+  <div class="post-modal" id="postModal" role="dialog" aria-modal="true" aria-labelledby="postModalTitle" aria-hidden="true">
+    <div class="post-scrim" data-close></div>
+    <div class="post-panel">
+      <button class="post-close" type="button" aria-label="Close and return to the pages" data-close>&times;</button>
+      <div class="post-scroll">
+        <span class="runhead">Ahora — Field Notes</span>
+        <span class="label" id="postModalLabel"></span>
+        <h2 id="postModalTitle"></h2>
+        <div class="post-body" id="postModalBody"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="colophon">
     <span>Ahora: to the hour — inviting you to pause and reflect.</span>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ahora — expand-to-read preview</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- the site's real stylesheet, so the preview matches the live look exactly -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* ============================================================
+       PREVIEW-ONLY styles — the expand-to-read modal.
+       (This block is what would move into styles.css if you approve.)
+       ============================================================ */
+
+    /* a quiet cue on each page so readers know it opens */
+    .page .open-cue {
+      flex: 0 0 auto; margin-top: clamp(14px, 2vh, 22px);
+      font-family: var(--sans); font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--sage);
+      display: inline-flex; align-items: center; gap: 8px;
+      opacity: 0.7; transition: opacity 500ms var(--ease), gap 500ms var(--ease);
+      pointer-events: none;
+    }
+    .page.current:hover .open-cue { opacity: 1; gap: 12px; }
+    .book { cursor: zoom-in; }
+
+    /* the expanded reader — a paper panel floating over a soft scrim */
+    .post-modal {
+      position: fixed; inset: 0; z-index: 70;
+      display: flex; align-items: center; justify-content: center;
+      padding: clamp(20px, 5vh, 56px) clamp(16px, 5vw, 56px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 420ms var(--ease);
+    }
+    .post-modal.open { opacity: 1; pointer-events: auto; }
+
+    .post-scrim {
+      position: absolute; inset: 0;
+      background: rgba(18, 20, 26, 0.52);
+      -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    }
+
+    .post-panel {
+      position: relative;
+      width: min(46rem, 100%);
+      max-height: min(84svh, 760px);
+      background: var(--paper);
+      border: 1px solid rgba(var(--sage-rgb), 0.34);
+      box-shadow: 0 30px 80px -30px rgba(18, 20, 26, 0.5);
+      display: flex; flex-direction: column;
+      transform: translateY(14px) scale(0.985);
+      transition: transform 520ms var(--ease);
+    }
+    .post-modal.open .post-panel { transform: none; }
+
+    .post-close {
+      position: absolute; top: clamp(12px, 1.6vw, 20px); right: clamp(12px, 1.6vw, 20px);
+      z-index: 2; width: 40px; height: 40px;
+      background: none; border: 0; cursor: pointer;
+      font-family: var(--serif); font-size: 30px; line-height: 1;
+      color: var(--sage);
+      display: flex; align-items: center; justify-content: center;
+      transition: color 300ms ease, transform 300ms ease;
+    }
+    .post-close:hover { color: var(--amber); transform: rotate(90deg); }
+
+    /* the scrolling reading column inside the panel */
+    .post-scroll {
+      overflow-y: auto; overscroll-behavior: contain;
+      padding: clamp(48px, 6vw, 76px) clamp(32px, 5vw, 72px) clamp(40px, 5vw, 60px);
+      scrollbar-width: thin; scrollbar-color: rgba(var(--sage-rgb), 0.5) transparent;
+    }
+    .post-scroll::-webkit-scrollbar { width: 8px; }
+    .post-scroll::-webkit-scrollbar-thumb { background: rgba(var(--sage-rgb), 0.4); border-radius: 8px; }
+
+    .post-scroll .runhead {
+      font-family: var(--sans); font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--sage); display: block; margin-bottom: 22px;
+    }
+    .post-scroll .label { display: block; margin-bottom: 18px; }
+    .post-scroll h2 {
+      font-family: var(--serif); font-weight: 400;
+      font-size: clamp(1.5rem, 2.4vw + 0.8rem, 2.4rem); line-height: 1.22;
+      margin: 0 0 26px; max-width: 22ch;
+    }
+    .post-scroll p { margin: 0 0 20px; max-width: 42ch; line-height: 1.72; text-wrap: pretty; }
+    .post-scroll p:last-child { margin-bottom: 0; }
+    .post-scroll .aside { font-style: italic; color: var(--muted); }
+
+    /* tablet — a touch narrower reading column, roomier panel */
+    @media (max-width: 920px) {
+      .post-panel { width: min(42rem, 100%); max-height: min(86svh, 720px); }
+    }
+    /* phone — panel nearly fills the width, text reflows full-width */
+    @media (max-width: 600px) {
+      .post-modal { padding: clamp(14px, 3vh, 28px) clamp(12px, 4vw, 24px); }
+      .post-panel { width: 100%; max-height: 90svh; }
+      .post-scroll { padding: clamp(44px, 12vw, 60px) clamp(24px, 7vw, 40px) clamp(32px, 8vw, 44px); }
+      .post-scroll p { max-width: none; }
+      .post-close { width: 44px; height: 44px; }   /* comfortable tap target */
+    }
+    /* short / landscape viewports — keep the header + close clear, trim vertical air */
+    @media (max-height: 560px) {
+      .post-modal { padding: 12px clamp(16px, 5vw, 56px); }
+      .post-panel { max-height: 94svh; }
+      .post-scroll { padding-top: clamp(40px, 8vh, 56px); padding-bottom: clamp(24px, 5vh, 40px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .post-modal, .post-panel, .post-close { transition: none; }
+    }
+
+    /* preview page chrome only */
+    .preview-note {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      z-index: 5; font-family: var(--sans); font-size: 11px; letter-spacing: 0.06em;
+      color: var(--muted); background: rgba(243,240,232,0.8); padding: 8px 16px;
+      border: 1px solid rgba(var(--sage-rgb),0.3); border-radius: 999px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- THE PAGES (same markup as index.html #reader) -->
+  <section class="screen reader" id="reader" style="min-height:100svh;">
+    <span class="label">The Blogs — scroll sideways to turn · click to read in full</span>
+    <div class="featured" id="featured" hidden></div>
+    <div class="book" id="book"></div>
+    <div class="reader-foot"><span class="leaf" id="leaf">1 — 1</span></div>
+  </section>
+
+  <!-- the expanded reader, injected once -->
+  <div class="post-modal" id="postModal" role="dialog" aria-modal="true" aria-labelledby="postModalTitle" aria-hidden="true">
+    <div class="post-scrim" data-close></div>
+    <div class="post-panel">
+      <button class="post-close" type="button" aria-label="Close and return to the pages" data-close>&times;</button>
+      <div class="post-scroll">
+        <span class="runhead">Ahora — Field Notes</span>
+        <span class="label" id="postModalLabel"></span>
+        <h2 id="postModalTitle"></h2>
+        <div class="post-body" id="postModalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-note">Preview — drag/scroll sideways to turn · click a page (or the “Read in full” cue) to expand · Esc / “×” / click outside to close</div>
+
+  <script>
+  (() => {
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    // render a body exactly as typed: blank line → new paragraph, single line-break → its own line
+    const bodyHtml = (s) => String(s ?? '').replace(/\r\n?/g, '\n')
+      .split(/\n{2,}/).map((blk) => blk.replace(/^\n+|\n+$/g, '')).filter(Boolean)
+      .map((blk) => `<p>${esc(blk).replace(/\n/g, '<br>')}</p>`).join('');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Real content from published.json, plus one deliberately LONG note so you can
+    // see the modal scroll. (The live site would keep fetching published.json.)
+    const notes = [
+      {
+        label: 'Note 01',
+        title: 'On the particular light of late afternoon',
+        body: "There is a light, around four o'clock in the colder months, that makes ordinary streets feel borrowed from memory. It doesn't ask for anything. It arrives, lays itself across a wall, and leaves again before you've decided what to do with it.",
+        aside: 'I have learned to stop for it — to let the errand wait.',
+        featured: true,
+      },
+      {
+        label: 'Note 02',
+        title: 'What the table remembers',
+        body: "A cup, a folded napkin, the last of the morning's bread. Small still lifes assemble themselves without my asking. For a while I tried to tidy them away. Now I leave them, because they are honest about how a day is actually lived.\n\nNone of it is composed. That is the part I am most fond of.",
+        aside: '',
+        featured: true,
+      },
+      {
+        label: 'Note 03',
+        title: 'A long walk home, and everything it held',
+        body: "Some evenings the walk home is the only unhurried thing in the day, and so I let it grow long on purpose. I take the street with the crooked plane trees instead of the quick one along the tram line.\n\nThe first thing I notice is always sound before sight — a shutter being drawn somewhere above, the particular clatter of a bicycle over cobbles, a kettle through an open window. The city keeps a private register of small percussions, and if you slow enough it will let you read a little of it.\n\nHalf a street on, there is a baker who leaves the door open even in the cold, and the warm bread-smell reaches the pavement before the light from the window does. I have never once bought anything. I only pass through the smell, the way you might pass through a memory that belongs to someone else, and feel oddly welcomed by it anyway.\n\nThen the small square, where the fountain has been dry all winter and the pigeons have taken it over as though it were built for them. An old man feeds them from a paper bag every day at the same hour, and I have started to arrange my long walk so I am there to see it. We have never spoken. I am not sure we need to.\n\nThe light is doing its late thing by now, gold going to grey, and the upper windows catch it one by one and let it go. I used to think a day needed a conclusion — some tidy thought to fold it closed. I no longer believe that. A day can simply thin out, like light off a wall, and be complete in the thinning.\n\nBy the time I reach my own door the walk has done its quiet work. Nothing has been solved. Nothing needed to be. I have only looked twice at an ordinary street, and let it be enough.",
+        aside: "This is the sort of note that outgrows the little page — which is exactly why it can now open.",
+        featured: false,
+      },
+    ];
+
+    const book = document.getElementById('book');
+    const featuredEl = document.getElementById('featured');
+    const leafEl = document.getElementById('leaf');
+    const clamp = (lo, hi, v) => Math.max(lo, Math.min(hi, v));
+
+    // ---- render the book (mirrors renderNotes in main.js, + an "open" cue) ----
+    book.innerHTML = notes.map((n, i) => {
+      const paras = bodyHtml(n.body);
+      const aside = n.aside ? `<p class="aside">${esc(n.aside)}</p>` : '';
+      return `<article class="page${i === 0 ? ' current' : ''}" data-note="${i}">` +
+        `<span class="runhead">Ahora — Field Notes</span>` +
+        `<div class="stagger in"><span class="label">${esc(n.label)}</span>` +
+        `<h2>${esc(n.title)}</h2>${paras}${aside}</div>` +
+        `<span class="open-cue">Read in full &rarr;</span>` +
+        `<span class="folio">${i + 1}</span></article>`;
+    }).join('');
+    leafEl.textContent = `1 — ${notes.length}`;
+
+    // ---- render featured strip ----
+    const picks = notes.map((n, i) => ({ n, i })).filter(({ n }) => n.featured).slice(0, 3);
+    if (picks.length) {
+      featuredEl.hidden = false;
+      featuredEl.innerHTML = `<span class="label feat-label">Featured</span><div class="feat-row">` +
+        picks.map(({ n, i }) => {
+          const lead = (String(n.body || '').replace(/\r\n?/g, '\n').split(/\n{2,}/).map((b) => b.trim()).filter(Boolean)[0] || '').replace(/\n+/g, ' ');
+          return `<button class="feat-card" data-to="${i}"><span class="label">${esc(n.label)}</span>` +
+            `<span class="feat-title">${esc(n.title)}</span><span class="feat-lead">${esc(lead)}</span>` +
+            `<span class="feat-cue">Read →</span></button>`;
+        }).join('') + `</div>`;
+    }
+
+    const pages = [...book.querySelectorAll('.page')];
+    let cur = 0, lock = false;
+    function showPage(n) {
+      n = clamp(0, pages.length - 1, n);
+      pages.forEach((p, i) => { p.classList.toggle('current', i === n); p.classList.toggle('left', i < n); });
+      cur = n; leafEl.textContent = `${n + 1} — ${pages.length}`;
+    }
+    function flip(dir) {
+      if (lock) return;
+      const n = cur + dir;
+      if (n < 0 || n >= pages.length) return;
+      lock = true; showPage(n); setTimeout(() => { lock = false; }, 720);
+    }
+
+    // ---- the expand-to-read modal ----
+    const modal = document.getElementById('postModal');
+    const mLabel = document.getElementById('postModalLabel');
+    const mTitle = document.getElementById('postModalTitle');
+    const mBody = document.getElementById('postModalBody');
+    const scroll = modal.querySelector('.post-scroll');
+    let lastFocus = null;
+
+    function openPost(i) {
+      const n = notes[i]; if (!n) return;
+      const paras = bodyHtml(n.body);
+      mLabel.textContent = n.label || '';
+      mTitle.textContent = n.title || '';
+      mBody.innerHTML = paras + (n.aside ? `<p class="aside">${esc(n.aside)}</p>` : '');
+      lastFocus = document.activeElement;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      scroll.scrollTop = 0;
+      modal.querySelector('.post-close').focus();
+    }
+    function closePost() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    modal.addEventListener('click', (e) => { if (e.target.hasAttribute('data-close')) closePost(); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) closePost(); });
+
+    // ---- book gestures: swipe turns the page, a tap (no drag) opens it ----
+    let bd = false, bx = 0, by = 0, moved = 0;
+    book.addEventListener('pointerdown', (e) => { bd = true; bx = e.clientX; by = e.clientY; moved = 0; book.setPointerCapture(e.pointerId); });
+    book.addEventListener('pointermove', (e) => { if (bd) moved = Math.max(moved, Math.abs(e.clientX - bx), Math.abs(e.clientY - by)); });
+    book.addEventListener('pointerup', (e) => {
+      if (!bd) return; bd = false;
+      const dx = e.clientX - bx;
+      if (Math.abs(dx) > 50) { flip(dx < 0 ? 1 : -1); return; }   // a swipe → turn the page
+      if (moved < 8) openPost(cur);                               // a click/tap → expand
+    });
+    book.addEventListener('pointercancel', () => { bd = false; });
+
+    // wheel to turn (like the live reader), keyboard arrows
+    let accX = 0, accTimer;
+    document.getElementById('reader').addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault(); accX += e.deltaX; clearTimeout(accTimer);
+      accTimer = setTimeout(() => { accX = 0; }, 180);
+      if (Math.abs(accX) > 80) { flip(accX > 0 ? 1 : -1); accX = 0; }
+    }, { passive: false });
+    addEventListener('keydown', (e) => {
+      if (modal.classList.contains('open')) return;
+      if (e.key === 'ArrowRight') flip(1);
+      else if (e.key === 'ArrowLeft') flip(-1);
+      else if (e.key === 'Enter') openPost(cur);
+    });
+
+    // featured card → open that blog in the expanded reader (and turn the book to it,
+    // so closing the pop-up leaves you on the matching page)
+    featuredEl.addEventListener('click', (e) => {
+      const card = e.target.closest('.feat-card'); if (!card) return;
+      const i = +card.dataset.to;
+      showPage(i);
+      openPost(i);
+    });
+
+    showPage(0);
+  })();
+  </script>
+</body>
+</html>

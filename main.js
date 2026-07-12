@@ -14,6 +14,12 @@
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/_(.+?)_/g, '<em>$1</em>');
+  // render a body exactly as typed in the admin: a blank line starts a new paragraph,
+  // and a single line-break inside a paragraph is kept as its own line (not collapsed)
+  const bodyHtml = (s) => String(s == null ? '' : s)
+    .replace(/\r\n?/g, '\n')
+    .split(/\n{2,}/).map((blk) => blk.replace(/^\n+|\n+$/g, '')).filter(Boolean)
+    .map((blk) => `<p>${esc(blk).replace(/\n/g, '<br>')}</p>`).join('');
 
   /* ---------- Lenis: vertical inertia scrolling ---------- */
   let lenis = null;
@@ -76,15 +82,14 @@
     setInterval(tick, 30000);
 
     const bgRipple = () => { if (bg) { bg.classList.remove('go'); void bg.offsetWidth; bg.classList.add('go'); } };
-    const revealText = () => { cover.classList.add('revealed'); if (body) body.classList.add('in'); };
-    // the letters fall onto the still-water surface — splash where the "A" lands
-    const splash = (power) => {
-      if (!coverWaterDrop) return;
-      const a = word.querySelector('.ltr');
-      if (!a) return;
-      const r = a.getBoundingClientRect();
-      coverWaterDrop(r.left + r.width / 2, r.top + r.height * 0.6, power);
-    };
+    const revealText = () => { cover.classList.add('revealed'); if (body) body.classList.add('in'); coverReady = true; };
+    // the letters fall onto the still-water surface — splash where they land
+    const splashAt = (power, cx) => { if (coverWaterDrop && cx != null) coverWaterDrop(cx.x, cx.y, power, true); };
+    // centre of the "A" (the first drop)
+    const aCentre = () => { const a = word.querySelector('.ltr'); if (!a) return null; const r = a.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height * 0.6 }; };
+    // centre of "hora" (letters 2..n), so its settle ripple wells up from the word, not the A
+    const horaCentre = () => { const l = word.querySelectorAll('.ltr'); if (l.length < 2) return null; const a = l[1].getBoundingClientRect(), b = l[l.length - 1].getBoundingClientRect(); return { x: (a.left + b.right) / 2, y: a.top + a.height * 0.6 }; };
+    const splash = (power) => splashAt(power, aCentre());
 
     let timers = [];
     const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
@@ -96,7 +101,7 @@
       word.classList.add('play');
       timers.push(setTimeout(() => splash(750), (A_DELAY + 0.5) * 1000));   // A's raindrop
       timers.push(setTimeout(bgRipple, (lastLand - 0.15) * 1000));
-      timers.push(setTimeout(() => splash(450), (lastLand - 0.1) * 1000));   // h-o-r-a settle
+      timers.push(setTimeout(() => splashAt(450, horaCentre()), (lastLand - 0.1) * 1000));   // h-o-r-a settle, from its own centre
       timers.push(setTimeout(revealText, (lastLand - 0.1) * 1000));
       sessionStorage.setItem(KEY, '1');
     }
@@ -124,6 +129,8 @@
     }, { threshold: 0.55 }).observe(cover);
   }
   let coverWaterDrop = null;   // initCoverWater publishes this so the cover word can splash
+  let coverReady = false;      // gate: auto-rain holds off until the word has settled, so
+                               // the opening shows only A's drop and hora's single big ripple
   initCover();
 
   /* ============================================================
@@ -189,13 +196,24 @@
     // across browsers (unlike canvas ctx.filter, which mobile Safari often drops)
     canvas.style.filter = `blur(${coarse ? 7 : 5}px)`;
     const GROUND = [232, 228, 217];
-    let cols = 0, rows = 0, cur, prev, off, octx, img;
-    let nextRain = 1.5;
+    let cols = 0, rows = 0, off, octx, img;
+    let nextRain = 1.5, prevNow = 0;
+    // Three independent water surfaces, blended when drawn. The wavefront advances one
+    // cell per step(), so the step cadence sets the outward speed:
+    //   inter  — the cursor (click / drag). Steps every frame → original, responsive.
+    //   splash — the word's landing splash. A fixed 40/s.
+    //   rain   — the automatic rain. A fixed 45/s.
+    // damp = how fast a ripple decays per step; lower = rings die sooner → fewer circles
+    const inter  = { cur: null, prev: null, dt: 0,         acc: 0, damp: 0.965 };  // cursor — one step per frame
+    const splash = { cur: null, prev: null, dt: 1000 / 40, acc: 0, damp: 0.90 };   // word's splash — quick decay, one clean ring
+    const rain   = { cur: null, prev: null, dt: 1000 / 45, acc: 0, damp: 0.965 };  // automatic rain
+    const ponds = [inter, splash, rain];
 
-    const drop = (gx, gy, power) => { if (gx > 0 && gy > 0 && gx < cols - 1 && gy < rows - 1) prev[gy * cols + gx] += power; };
-    coverWaterDrop = (clientX, clientY, power) => {
+    const dropInto = (p, gx, gy, power) => { if (gx > 0 && gy > 0 && gx < cols - 1 && gy < rows - 1) p.prev[gy * cols + gx] += power; };
+    // slow=true lands the drop on the word's splash surface (used by the cover word)
+    coverWaterDrop = (clientX, clientY, power, slow) => {
       const r = canvas.getBoundingClientRect();
-      drop(((clientX - r.left) / scale) | 0, ((clientY - r.top) / scale) | 0, power || 700);
+      dropInto(slow ? splash : inter, ((clientX - r.left) / scale) | 0, ((clientY - r.top) / scale) | 0, power || 700);
     };
 
     // listen on the cover, not the canvas, so ripples span the whole field and
@@ -204,19 +222,26 @@
     const move = (cx, cy) => {
       const r = canvas.getBoundingClientRect();
       m.x = cx - r.left; m.y = cy - r.top;
-      if (m.on) { const d = Math.hypot(m.x - m.px, m.y - m.py); if (d > 2) drop((m.x / scale) | 0, (m.y / scale) | 0, Math.min(150, d * 6)); }
+      if (m.on) { const d = Math.hypot(m.x - m.px, m.y - m.py); if (d > 2) dropInto(inter, (m.x / scale) | 0, (m.y / scale) | 0, Math.min(150, d * 6)); }
       m.px = m.x; m.py = m.y; m.on = true;
     };
     cover.addEventListener('pointermove', (e) => move(e.clientX, e.clientY), { passive: true });
     cover.addEventListener('pointerdown', (e) => coverWaterDrop(e.clientX, e.clientY, 750), { passive: true });
     cover.addEventListener('pointerleave', () => { m.on = false; });
 
-    function step() {
+    function stepPond(p) {
+      const cur = p.cur, prev = p.prev;
       for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) {
         const i = y * cols + x;
-        cur[i] = ((prev[i - 1] + prev[i + 1] + prev[i - cols] + prev[i + cols]) / 2 - cur[i]) * 0.965;
+        cur[i] = ((prev[i - 1] + prev[i + 1] + prev[i - cols] + prev[i + cols]) / 2 - cur[i]) * p.damp;
       }
-      const t = prev; prev = cur; cur = t;
+      p.cur = prev; p.prev = cur;
+    }
+    // advance a pond on its own fixed clock; catch up at most a few steps after a stall,
+    // so refocusing the tab never makes the ripple lurch
+    function advance(p, elapsed) {
+      p.acc += elapsed;
+      for (let s = 0; p.acc >= p.dt && s < 3; s++) { stepPond(p); p.acc -= p.dt; }
     }
 
     mountCanvas(canvas, {
@@ -224,16 +249,26 @@
       fps: coarse ? 30 : 0,                          // half rate on phones — calm water, less battery
       onsize(w, h) {
         cols = Math.ceil(w / scale) + 2; rows = Math.ceil(h / scale) + 2;
-        cur = new Float32Array(cols * rows); prev = new Float32Array(cols * rows);
+        for (const p of ponds) { p.cur = new Float32Array(cols * rows); p.prev = new Float32Array(cols * rows); p.acc = 0; }
         off = document.createElement('canvas'); off.width = cols; off.height = rows;
         octx = off.getContext('2d'); img = octx.createImageData(cols, rows);
       },
-      draw(ctx, w, h, t) {
-        if (t > nextRain) { drop((1 + Math.random() * (cols - 2)) | 0, (1 + Math.random() * (rows - 2)) | 0, 300); nextRain = t + 3.5 + Math.random() * 4.5; }
-        step();
+      draw(ctx, w, h, t, now) {
+        // auto-rain only once the cover word has settled; until then keep pushing the
+        // schedule forward, so the first drop lands ~2.5s after the reveal, never during it
+        if (coverReady) { if (t > nextRain) { dropInto(rain, (1 + Math.random() * (cols - 2)) | 0, (1 + Math.random() * (rows - 2)) | 0, 300); nextRain = t + 3.5 + Math.random() * 4.5; } }
+        else nextRain = t + 2.5;
+        // cursor surface steps every frame (original, responsive); the splash and rain
+        // surfaces advance on their own calmer fixed clocks
+        if (!prevNow) prevNow = now;
+        const elapsed = Math.min(120, now - prevNow); prevNow = now;
+        stepPond(inter); advance(splash, elapsed); advance(rain, elapsed);
         const d = img.data, ar = accent[0], ag = accent[1], ab = accent[2];
+        const pa = inter.prev, pb = splash.prev, pc = rain.prev;
         for (let i = 0, n = cols * rows; i < n; i++) {
-          const slope = ((prev[i - 1] || 0) - (prev[i + 1] || 0)) + ((prev[i - cols] || 0) - (prev[i + cols] || 0)) * 0.5;
+          // the surface is the three ponds summed; slope is linear, so blend the slopes
+          const slope = (((pa[i - 1] || 0) + (pb[i - 1] || 0) + (pc[i - 1] || 0)) - ((pa[i + 1] || 0) + (pb[i + 1] || 0) + (pc[i + 1] || 0)))
+                      + (((pa[i - cols] || 0) + (pb[i - cols] || 0) + (pc[i - cols] || 0)) - ((pa[i + cols] || 0) + (pb[i + cols] || 0) + (pc[i + cols] || 0))) * 0.5;
           let kk = slope * 0.04; kk = kk < -1 ? -1 : kk > 1 ? 1 : kk;   // surface tilt → light
           const o = i * 4;
           // crests lift toward warm light; troughs deepen and pick up the sage tint
@@ -250,31 +285,50 @@
     });
   }
 
-  /* ---------- 04 · BREATH (the held minute) ---------- */
+  /* ---------- 04 · BREATH (the held minute) ----------
+     A soft aperture of fine sage specks (kin to the dust): the ring opens on the
+     inhale and gathers back in on the exhale, turning slowly. The breathing
+     envelope (PERIOD / eased e) is unchanged — only the form is. */
   function initBreath() {
     const canvas = document.querySelector('.breath-canvas');
     if (!canvas) return;
     const cueEl = document.getElementById('restCue');
     const PERIOD = 11;   // seconds per full breath ≈ 5.5 / min
+    const COUNT = coarse ? 30 : 46;
+    // fixed per-mote constants → a soft, slightly irregular ring rather than a clean circle
+    const dots = Array.from({ length: COUNT }, (_, i) => ({
+      ang: (i / COUNT) * TAU,
+      roff: (Math.random() - 0.5) * 0.18,   // radial scatter (fraction of R) → a fuzzy band
+      sz: 0.5 + Math.random() * 0.9,         // dot size factor
+      tw: Math.random() * TAU                // twinkle phase, so specks shimmer out of step
+    }));
     let last = '';
     mountCanvas(canvas, {
       fps: coarse ? 30 : 0,
       draw(ctx, w, h, t) {
-        const cx = w / 2, cy = h / 2;
+        const cx = w / 2, cy = h / 2, base = Math.min(w, h);
         const p = (t % PERIOD) / PERIOD, inhale = p < 0.5;
         const local = inhale ? p / 0.5 : 1 - (p - 0.5) / 0.5;
         const e = local < 0.5 ? 2 * local * local : 1 - Math.pow(-2 * local + 2, 2) / 2;
-        const R = Math.min(w, h) * 0.10 + e * Math.min(w, h) * 0.24;
+        const R = base * 0.12 + e * base * 0.22;   // the ring's radius breathes in and out
+        const rot = t * 0.05;                       // the aperture turns slowly
         const [r, g, b] = accent;
         ctx.clearRect(0, 0, w, h);
-        for (let k = 3; k >= 0; k--) {
-          ctx.beginPath(); ctx.strokeStyle = `rgba(${r},${g},${b},${(0.08 + 0.09 * (3 - k)).toFixed(3)})`;
-          ctx.lineWidth = 1.1; ctx.arc(cx, cy, Math.max(1, R - k * 9), 0, TAU); ctx.stroke();
-        }
+        // a whisper of inner glow so the centre isn't a void
         const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-        rad.addColorStop(0, `rgba(${r},${g},${b},${(0.14 + e * 0.10).toFixed(3)})`);
+        rad.addColorStop(0, `rgba(${r},${g},${b},${(0.05 + e * 0.05).toFixed(3)})`);
         rad.addColorStop(1, `rgba(${r},${g},${b},0)`);
         ctx.fillStyle = rad; ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
+        // the ring of specks — eases outward on the inhale, draws back in on the exhale
+        for (const m of dots) {
+          const rr = R * (1 + m.roff), a = m.ang + rot;
+          const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr;
+          const tw = 0.6 + 0.4 * Math.sin(m.tw + t * 1.3);   // gentle shimmer
+          const alpha = (0.16 + 0.32 * e) * tw;              // brighter when the ring is open
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`;
+          ctx.arc(x, y, (m.sz * 1.5 + 0.6) * (0.9 + e * 0.25), 0, TAU); ctx.fill();
+        }
         if (cueEl) { const want = inhale ? 'breathe in' : 'breathe out'; if (want !== last) { last = want; cueEl.textContent = want; } }
       }
     });
@@ -376,6 +430,7 @@
   const book = document.getElementById('book');
   const leafEl = document.getElementById('leaf');
   const featuredEl = document.getElementById('featured');
+  let notesRef = [];   // the live (non-archived) notes, so the expanded reader can open any one
 
   function renderAlbum(album) {
     track.innerHTML = (album || []).map((p, i) =>
@@ -387,12 +442,13 @@
 
   function renderNotes(notes) {
     book.innerHTML = (notes || []).map((n, i) => {
-      const paras = String(n.body || '').split(/\n\s*\n/).filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('');
+      const paras = bodyHtml(n.body);
       const aside = n.aside ? `<p class="aside">${fmt(n.aside)}</p>` : '';
       return `<article class="page${i === 0 ? ' current' : ''}">` +
         `<span class="runhead">Ahora — Field Notes</span>` +
         `<div class="stagger"><span class="label">${esc(n.label)}</span>` +
         `<h2>${esc(n.title)}</h2>${paras}${aside}</div>` +
+        `<span class="open-cue">Read in full &rarr;</span>` +
         `<span class="folio">${i + 1}</span></article>`;
     }).join('');
     if (leafEl) leafEl.textContent = `1 — ${(notes || []).length || 1}`;
@@ -413,7 +469,7 @@
       `<span class="label feat-label">Featured</span>` +
       `<div class="feat-row">` +
       picks.map(({ n, i }) => {
-        const lead = String(n.body || '').split(/\n\s*\n/).filter(Boolean)[0] || '';
+        const lead = (String(n.body || '').replace(/\r\n?/g, '\n').split(/\n{2,}/).map((b) => b.trim()).filter(Boolean)[0] || '').replace(/\n+/g, ' ');
         return `<button class="feat-card" data-to="${i}">` +
           `<span class="label">${esc(n.label)}</span>` +
           `<span class="feat-title">${esc(n.title)}</span>` +
@@ -558,9 +614,16 @@
       if (Math.abs(accX) > 80) { flip(accX > 0 ? 1 : -1); accX = 0; }
     }, { passive: false });
 
-    let bd = false, bx = 0;
-    book.addEventListener('pointerdown', (e) => { bd = true; bx = e.clientX; book.setPointerCapture(e.pointerId); });
-    book.addEventListener('pointerup', (e) => { if (!bd) return; bd = false; const dx = e.clientX - bx; if (Math.abs(dx) > 50) flip(dx < 0 ? 1 : -1); });
+    // a horizontal swipe turns the page; a tap (little movement) opens the blog in full
+    let bd = false, bx = 0, by = 0, moved = 0;
+    book.addEventListener('pointerdown', (e) => { bd = true; bx = e.clientX; by = e.clientY; moved = 0; book.setPointerCapture(e.pointerId); });
+    book.addEventListener('pointermove', (e) => { if (bd) moved = Math.max(moved, Math.abs(e.clientX - bx), Math.abs(e.clientY - by)); });
+    book.addEventListener('pointerup', (e) => {
+      if (!bd) return; bd = false;
+      const dx = e.clientX - bx;
+      if (Math.abs(dx) > 50) flip(dx < 0 ? 1 : -1);
+      else if (moved < 8) openPost(cur);
+    });
     book.addEventListener('pointercancel', () => { bd = false; });
 
     showPage(0, false);
@@ -568,12 +631,43 @@
     readerApi = {
       flip,
       to(n) { if (lock) return; lock = true; showPage(n); setTimeout(() => { lock = false; }, 720); },
+      current: () => cur,
     };
   }
+
+  /* ---------- THE EXPANDED READER (a blog opens in a floating paper panel) ---------- */
+  const postModal = document.getElementById('postModal');
+  let lastPostFocus = null;
+  function openPost(i) {
+    const n = notesRef[i];
+    if (!n || !postModal) return;
+    const paras = bodyHtml(n.body);
+    document.getElementById('postModalLabel').textContent = n.label || '';
+    document.getElementById('postModalTitle').textContent = n.title || '';
+    document.getElementById('postModalBody').innerHTML = paras + (n.aside ? `<p class="aside">${fmt(n.aside)}</p>` : '');
+    lastPostFocus = document.activeElement;
+    postModal.classList.add('open');
+    postModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    postModal.querySelector('.post-scroll').scrollTop = 0;
+    postModal.querySelector('.post-close').focus();
+  }
+  function closePost() {
+    if (!postModal) return;
+    postModal.classList.remove('open');
+    postModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (lastPostFocus && lastPostFocus.focus) lastPostFocus.focus();
+  }
+  const postOpen = () => postModal && postModal.classList.contains('open');
+  if (postModal) postModal.addEventListener('click', (e) => { if (e.target.hasAttribute('data-close')) closePost(); });
 
   /* ---------- shared keyboard + anchors (wired once, use whatever exists) ---------- */
   let albumApi = null, readerApi = null;
   addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && postOpen()) { closePost(); return; }
+    if (postOpen()) return;   // while a blog is expanded, leave the sections alone
+    if (e.key === 'Enter' && active === 'reader' && readerApi) { openPost(readerApi.current()); return; }
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     const fwd = e.key === 'ArrowRight';
     if (active === 'album' && albumApi) albumApi.goTo(albumApi.activeIndex() + (fwd ? 1 : -1));
@@ -582,12 +676,14 @@
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener('click', (ev) => { const t = document.getElementById(a.getAttribute('href').slice(1)); if (!t) return; ev.preventDefault(); scrollTo(t); });
   });
-  // a featured card opens its blog: turn the book to that page, then bring it into view
+  // a featured card opens its blog in the expanded reader; the book turns to the
+  // matching page underneath, so closing the pop-up leaves you on that note
   if (featuredEl) featuredEl.addEventListener('click', (e) => {
     const card = e.target.closest('.feat-card');
-    if (!card || !readerApi) return;
-    readerApi.to(+card.dataset.to);
-    book.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    if (!card) return;
+    const i = +card.dataset.to;
+    if (readerApi) readerApi.to(i);
+    openPost(i);
   });
 
   /* ---------- load content, build, wire up ---------- */
@@ -596,6 +692,7 @@
     .then((data) => {
       renderAlbum((data.album || []).filter((p) => !p.archived));
       const liveNotes = (data.notes || []).filter((n) => !n.archived);
+      notesRef = liveNotes;
       renderNotes(liveNotes);
       renderFeatured(liveNotes);
       initAlbum();
