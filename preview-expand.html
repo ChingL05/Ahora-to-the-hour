@@ -209,9 +209,9 @@
       featuredEl.hidden = false;
       featuredEl.innerHTML = `<span class="label feat-label">Featured</span><div class="feat-row">` +
         picks.map(({ n, i }) => {
-          const lead = (String(n.body || '').replace(/\r\n?/g, '\n').split(/\n{2,}/).map((b) => b.trim()).filter(Boolean)[0] || '').replace(/\n+/g, ' ');
+          const lead = esc(String(n.body || '').replace(/\r\n?/g, '\n').replace(/\n{2,}/g, '\n').trim()).replace(/\n/g, '<br>');
           return `<button class="feat-card" data-to="${i}"><span class="label">${esc(n.label)}</span>` +
-            `<span class="feat-title">${esc(n.title)}</span><span class="feat-lead">${esc(lead)}</span>` +
+            `<span class="feat-title">${esc(n.title)}</span><span class="feat-lead">${lead}</span>` +
             `<span class="feat-cue">Read →</span></button>`;
         }).join('') + `</div>`;
     }

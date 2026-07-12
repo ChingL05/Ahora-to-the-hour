@@ -10,10 +10,10 @@ backend:
   base_url: https://ahora-to-the-hour.netlify.app
   auth_endpoint: /.netlify/functions/auth
 
-# Drafts: saving a Blog no longer goes straight to the live site. Each blog gets
-# a status — Draft → In review → Ready — and nothing is published until you hit
-# "Publish". (Photos in the Album still save directly; they don't need drafts.)
-publish_mode: editorial_workflow
+# Publishing: every blog and every photo carries its own Status — "Draft" or
+# "Ready". Saving only stores your work; nothing marked Draft is shown on the live
+# site. When you have several pieces finished, set each to "Ready" — they all go
+# live together on the next publish (the build only includes the Ready ones).
 
 # Where uploaded photos are stored, and how they're referenced in the content.
 media_folder: "photos/web"
@@ -27,16 +27,17 @@ collections:
       - name: "content"
         label: "The Album"
         file: "content.json"
-        description: "Add, reorder, or archive the photographs in the album."
+        description: "Add, reorder, or archive the photographs in the album. New photos start as Draft — set them to Ready to publish them (all Ready photos go live together)."
         fields:
           - label: "Album (photos)"
             name: "album"
             widget: "list"
             label_singular: "Photo"
-            summary: "{{fields.caption}}"
-            collapsed: true          # keep the list tidy — each photo shows its caption on one line
+            summary: "{{fields.status}} · {{fields.caption}}"
+            collapsed: true          # keep the list tidy — each photo shows its status + caption on one line
             fields:
               - { label: "Photo", name: "image", widget: "image" }
+              - { label: "Status", name: "status", widget: "select", options: ["Draft", "Ready"], default: "Draft", hint: "Draft = kept off the live site. Ready = published on the next publish. Set several to Ready to release them together." }
               - { label: "Caption", name: "caption", widget: "string", required: false, hint: "Shown beneath the photo." }
               - { label: "Alt text", name: "alt", widget: "string", required: false, hint: "A plain description of the image, for screen readers." }
               - { label: "Archived", name: "archived", widget: "boolean", default: false, required: false, hint: "On = hidden from the front page, shown only in the Archive." }
@@ -52,8 +53,9 @@ collections:
     identifier_field: "title"
     summary: "{{fields.order}} · {{fields.title}}"   # tidy one-line summary in the list
     sortable_fields: ["order", "title"]
-    description: "Write a blog. Save it as a Draft to keep working without publishing; move it to Ready and Publish when it's done."
+    description: "Write a blog. Leave it as Draft while you work — it stays off the live site. Set it to Ready when it's done; all Ready blogs publish together on the next publish."
     fields:
+      - { label: "Status", name: "status", widget: "select", options: ["Draft", "Ready"], default: "Draft", hint: "Draft = kept off the live site. Ready = published on the next publish. Set several to Ready to release them together." }
       - { label: "Small label", name: "label", widget: "string", hint: "e.g. Note 04" }
       - { label: "Title", name: "title", widget: "string" }
       - { label: "Body", name: "body", widget: "text", hint: "Leave a blank line between paragraphs." }

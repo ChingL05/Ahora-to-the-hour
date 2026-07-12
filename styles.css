@@ -377,6 +377,8 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .colophon { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 var(--pad) 48px; font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--sage); }
 .colophon a { border-bottom: 1px solid rgba(var(--sage-rgb), 0.5); padding-bottom: 1px; transition: color 360ms ease, border-color 360ms ease; }
 .colophon a:hover { color: var(--amber); border-color: var(--amber); }
+/* the ownership line sits on its own quiet row beneath the colophon */
+.colophon .rights { flex-basis: 100%; margin-top: 10px; opacity: 0.72; letter-spacing: 0.06em; }
 
 /* ============================================================
    ARCHIVE PAGE
@@ -417,6 +419,7 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .arc-back { margin-top: clamp(56px, 9vh, 100px); font-family: var(--sans); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
 .arc-back a { color: var(--muted); border-bottom: 1px solid transparent; padding-bottom: 2px; transition: color 360ms ease, border-color 360ms ease; }
 .arc-back a:hover { color: var(--amber); border-color: var(--amber); }
+.arc-rights { margin-top: clamp(20px, 3vh, 32px); font-family: var(--sans); font-size: 11px; letter-spacing: 0.06em; color: var(--sage); opacity: 0.72; }
 
 /* lightbox */
 .lightbox { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 32px); padding: clamp(24px, 5vw, 64px); background: rgba(18, 20, 26, 0.94); opacity: 0; pointer-events: none; transition: opacity 420ms var(--ease); }
