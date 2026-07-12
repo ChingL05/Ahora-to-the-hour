@@ -664,10 +664,9 @@
   const postOpen = () => postModal && postModal.classList.contains('open');
   if (postModal) postModal.addEventListener('click', (e) => { if (e.target.hasAttribute('data-close')) closePost(); });
 
-  /* ---------- contact form (Netlify Forms) — submit in place, no page jump ----------
-     Netlify captures the POST and emails it; on success we show a quiet inline
-     confirmation instead of Netlify's default success page. Without JS the form
-     still works natively (posts to Netlify and lands on its success page). */
+  /* ---------- contact form (Web3Forms) — submit in place, no page jump ----------
+     Posts to Web3Forms' API, which emails the note to me; Web3Forms answers with
+     JSON { success, message }. On success we show a quiet inline confirmation. */
   (function initContactForm() {
     const form = document.getElementById('contactForm');
     if (!form) return;
@@ -682,17 +681,17 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-      const body = new URLSearchParams(new FormData(form)).toString();
-      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body })
-        .then((r) => {
-          if (!r.ok) throw new Error('the server said HTTP ' + r.status);
+      fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
+        .then((r) => r.json().catch(() => ({ success: r.ok })))
+        .then((data) => {
+          if (!data.success) throw new Error(data.message || 'submission failed');
           form.reset();
           if (btn) btn.textContent = 'Sent';
           say('Thank you — your note is on its way.', false);
         })
         .catch((err) => {
           if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
-          // include the reason so we can diagnose; network failures have no HTTP status
+          // include the reason so we can diagnose; network failures have no message
           say('Something went wrong (' + (err && err.message ? err.message : 'network error') + ') — please try again, or reach me on Instagram.', true);
         });
     });

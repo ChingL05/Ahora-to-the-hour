@@ -373,8 +373,6 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 
 /* ---------- contact form (Netlify Forms) — understated, underline-only fields ---------- */
 .invite-form { max-width: var(--reading); margin: 0; }
-/* honeypot: kept in the DOM for bots but off-screen for people and screen readers */
-.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .invite-form .field { margin-bottom: 24px; }
 .invite-form label { display: block; font-family: var(--sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage); margin-bottom: 9px; }
 .invite-form label span { text-transform: none; letter-spacing: 0.02em; opacity: 0.7; }

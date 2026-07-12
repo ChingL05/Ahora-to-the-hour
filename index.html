@@ -29,9 +29,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=form1" />
+  <link rel="stylesheet" href="styles.css?v=form3" />
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
-  <script defer src="main.js?v=form2"></script>
+  <script defer src="main.js?v=form3"></script>
 </head>
 <body>
 
@@ -105,12 +105,15 @@
       <h2>If something here met you, I'd like to hear about it.</h2>
       <p>No newsletter, no notifications — just a quiet way to write. Say something when you have it, and no particular hurry to say it.</p>
 
-      <!-- Netlify Forms: submissions are captured by Netlify and emailed to me;
-           no address sits in the page for bots to scrape. -->
-      <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="invite-form" id="contactForm">
-        <input type="hidden" name="form-name" value="contact" />
-        <!-- honeypot: hidden from people, tempting to bots; Netlify drops any that fill it -->
-        <p class="hp-field" aria-hidden="true"><label>Leave this field empty <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+      <!-- Web3Forms: submissions POST to Web3Forms' API and are emailed to me;
+           no address sits in the page for bots to scrape. Get a free access key
+           at https://web3forms.com (enter this email) and put it in access_key below. -->
+      <form action="https://api.web3forms.com/submit" method="POST" class="invite-form" id="contactForm">
+        <input type="hidden" name="access_key" value="7507fc57-d185-4569-bc44-d07e47df579d" />
+        <input type="hidden" name="subject" value="A new note from the Ahora site" />
+        <input type="hidden" name="from_name" value="Ahora — contact form" />
+        <!-- honeypot: hidden from people; Web3Forms drops any submission that checks it -->
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none" />
         <div class="field">
           <label for="cf-name">Name <span>(optional)</span></label>
           <input id="cf-name" type="text" name="name" autocomplete="name" />
