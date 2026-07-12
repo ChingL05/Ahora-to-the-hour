@@ -374,6 +374,34 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .invite-links a { font-family: var(--sans); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--sage); padding-bottom: 3px; transition: color 360ms ease, border-color 360ms ease; }
 .invite-links a:hover { color: var(--amber); border-color: var(--amber); }
 
+/* ---------- contact form (Netlify Forms) — understated, underline-only fields ---------- */
+.invite-form { max-width: var(--reading); margin: 0; }
+/* honeypot: kept in the DOM for bots but off-screen for people and screen readers */
+.hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.invite-form .field { margin-bottom: 24px; }
+.invite-form label { display: block; font-family: var(--sans); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage); margin-bottom: 9px; }
+.invite-form label span { text-transform: none; letter-spacing: 0.02em; opacity: 0.7; }
+.invite-form input, .invite-form textarea {
+  width: 100%; font-family: var(--serif); font-size: 1rem; color: var(--ink);
+  background: transparent; border: 0; border-bottom: 1px solid rgba(var(--sage-rgb), 0.4);
+  padding: 8px 2px; transition: border-color 360ms ease;
+}
+.invite-form input::placeholder, .invite-form textarea::placeholder { color: var(--muted); opacity: 0.55; font-style: italic; }
+.invite-form input:focus, .invite-form textarea:focus { outline: none; border-color: var(--amber); }
+.invite-form textarea { resize: vertical; line-height: 1.6; min-height: 108px; }
+.invite-actions { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; margin-top: 32px; }
+.invite-send {
+  font-family: var(--sans); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink); background: transparent; border: 1px solid var(--sage); cursor: pointer;
+  padding: 12px 32px; transition: color 360ms ease, border-color 360ms ease;
+}
+.invite-send:hover { color: var(--amber); border-color: var(--amber); }
+.invite-send:disabled { opacity: 0.5; cursor: default; }
+.invite-actions a { font-family: var(--sans); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--sage); padding-bottom: 3px; transition: color 360ms ease, border-color 360ms ease; }
+.invite-actions a:hover { color: var(--amber); border-color: var(--amber); }
+.form-status { margin-top: 26px; font-family: var(--sans); font-size: 13px; letter-spacing: 0.04em; color: var(--sage); }
+.form-status.error { color: var(--amber); }
+
 .colophon { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 var(--pad) 48px; font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--sage); }
 .colophon a { border-bottom: 1px solid rgba(var(--sage-rgb), 0.5); padding-bottom: 1px; transition: color 360ms ease, border-color 360ms ease; }
 .colophon a:hover { color: var(--amber); border-color: var(--amber); }

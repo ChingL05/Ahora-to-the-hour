@@ -29,9 +29,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=expand1" />
+  <link rel="stylesheet" href="styles.css?v=form1" />
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
-  <script defer src="main.js?v=expand1"></script>
+  <script defer src="main.js?v=form1"></script>
 </head>
 <body>
 
@@ -103,11 +103,32 @@
     <div class="stagger">
       <span class="label">An open door</span>
       <h2>If something here met you, I'd like to hear about it.</h2>
-      <p>No newsletter, no notifications — just an address. Write when you have something to say and no particular hurry to say it.</p>
-      <div class="invite-links">
-        <a href="mailto:flobelivet@gmail.com">Email</a>
-        <a href="https://www.instagram.com/ahora.336?igsh=Z3h3emJqNHJheXVz&amp;utm_source=qr" target="_blank" rel="noopener noreferrer">Instagram</a>
-      </div>
+      <p>No newsletter, no notifications — just a quiet way to write. Say something when you have it, and no particular hurry to say it.</p>
+
+      <!-- Netlify Forms: submissions are captured by Netlify and emailed to me;
+           no address sits in the page for bots to scrape. -->
+      <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="invite-form" id="contactForm">
+        <input type="hidden" name="form-name" value="contact" />
+        <!-- honeypot: hidden from people, tempting to bots; Netlify drops any that fill it -->
+        <p class="hp-field" aria-hidden="true"><label>Leave this field empty <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+        <div class="field">
+          <label for="cf-name">Name <span>(optional)</span></label>
+          <input id="cf-name" type="text" name="name" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="cf-email">Your email</label>
+          <input id="cf-email" type="email" name="email" required autocomplete="email" placeholder="so I can write back" />
+        </div>
+        <div class="field">
+          <label for="cf-message">A note</label>
+          <textarea id="cf-message" name="message" rows="5" required placeholder="whatever you'd like to say"></textarea>
+        </div>
+        <div class="invite-actions">
+          <button type="submit" class="invite-send">Send</button>
+          <a href="https://www.instagram.com/ahora.336?igsh=Z3h3emJqNHJheXVz&amp;utm_source=qr" target="_blank" rel="noopener noreferrer">Or find me on Instagram</a>
+        </div>
+        <p class="form-status" id="formStatus" role="status" aria-live="polite" hidden></p>
+      </form>
     </div>
   </section>
 

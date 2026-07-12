@@ -664,6 +664,39 @@
   const postOpen = () => postModal && postModal.classList.contains('open');
   if (postModal) postModal.addEventListener('click', (e) => { if (e.target.hasAttribute('data-close')) closePost(); });
 
+  /* ---------- contact form (Netlify Forms) — submit in place, no page jump ----------
+     Netlify captures the POST and emails it; on success we show a quiet inline
+     confirmation instead of Netlify's default success page. Without JS the form
+     still works natively (posts to Netlify and lands on its success page). */
+  (function initContactForm() {
+    const form = document.getElementById('contactForm');
+    if (!form) return;
+    const status = document.getElementById('formStatus');
+    const btn = form.querySelector('.invite-send');
+    const say = (msg, isError) => {
+      if (!status) return;
+      status.hidden = false;
+      status.classList.toggle('error', !!isError);
+      status.textContent = msg;
+    };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      const body = new URLSearchParams(new FormData(form)).toString();
+      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body })
+        .then((r) => {
+          if (!r.ok) throw new Error('status ' + r.status);
+          form.reset();
+          if (btn) btn.textContent = 'Sent';
+          say('Thank you — your note is on its way.', false);
+        })
+        .catch(() => {
+          if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+          say('Something went wrong — please try again, or reach me on Instagram.', true);
+        });
+    });
+  })();
+
   /* ---------- shared keyboard + anchors (wired once, use whatever exists) ---------- */
   let albumApi = null, readerApi = null;
   addEventListener('keydown', (e) => {
