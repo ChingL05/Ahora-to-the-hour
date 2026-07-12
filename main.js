@@ -685,14 +685,15 @@
       const body = new URLSearchParams(new FormData(form)).toString();
       fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body })
         .then((r) => {
-          if (!r.ok) throw new Error('status ' + r.status);
+          if (!r.ok) throw new Error('the server said HTTP ' + r.status);
           form.reset();
           if (btn) btn.textContent = 'Sent';
           say('Thank you — your note is on its way.', false);
         })
-        .catch(() => {
+        .catch((err) => {
           if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
-          say('Something went wrong — please try again, or reach me on Instagram.', true);
+          // include the reason so we can diagnose; network failures have no HTTP status
+          say('Something went wrong (' + (err && err.message ? err.message : 'network error') + ') — please try again, or reach me on Instagram.', true);
         });
     });
   })();
