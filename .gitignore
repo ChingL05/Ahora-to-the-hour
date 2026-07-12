@@ -10,3 +10,8 @@ photos/*.jpeg
 photos/*.jpg
 photos/*.JPG
 photos/*.png
+
+# Build artifact: published.json is generated from content.json + content/blogs/*
+# by build-content.js on every Netlify deploy, so it isn't tracked. To preview
+# locally, run:  node build-content.js
+published.json

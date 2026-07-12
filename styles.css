@@ -370,9 +370,6 @@ section.screen { position: relative; z-index: 1; min-height: 100svh; will-change
 .invite .label { display: block; margin-bottom: 30px; }
 .invite h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(1.7rem, 3vw + 0.8rem, 3rem); line-height: 1.24; margin: 0 0 30px; max-width: 18ch; }
 .invite p { max-width: var(--reading); color: var(--muted); margin: 0 0 38px; }
-.invite-links { display: flex; gap: 28px; flex-wrap: wrap; }
-.invite-links a { font-family: var(--sans); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--sage); padding-bottom: 3px; transition: color 360ms ease, border-color 360ms ease; }
-.invite-links a:hover { color: var(--amber); border-color: var(--amber); }
 
 /* ---------- contact form (Netlify Forms) — understated, underline-only fields ---------- */
 .invite-form { max-width: var(--reading); margin: 0; }
